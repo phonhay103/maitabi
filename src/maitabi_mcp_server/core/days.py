@@ -1,3 +1,6 @@
+"""Day-input parsing shared by bus and general search services."""
+
+
 def parse_days(day_input: int | list[int] | str | None) -> list[int] | None:
     """Parse day input (int, list of ints, or string like '14-16, 20') into a sorted list of ints."""
     if day_input is None:
@@ -15,7 +18,7 @@ def parse_days(day_input: int | list[int] | str | None) -> list[int] | None:
                 if parsed:
                     days.update(parsed)
         return sorted(list(days)) if days else None
-        
+
     if isinstance(day_input, str):
         days = set()
         for part in day_input.split(','):

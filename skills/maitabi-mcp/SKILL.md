@@ -55,7 +55,7 @@ Done when the payload has `count`/`tour`/`param` (or the detail fields for `get_
 
 ## 4. Filter ID reference
 
-See `../maitabi-bus-extractor/references/filter-mapping.md` for departure/area/style/return-day/seat/lodge ID tables.
+See `references/filter-mapping.md` for departure/area/style/return-day/seat/lodge ID tables.
 
 ## 5. Troubleshooting
 

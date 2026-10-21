@@ -1,0 +1,902 @@
+{
+  "get_general_tour_detail": {
+    "description": "Fetch complete details, itinerary, pricing, and booking information for a general tour on www.maitabi.jp.\n\nReturns a JSON string containing tour itinerary, meal conditions, price matrix, lodging, and booking links.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "course_no": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Tour course number(s) on www.maitabi.jp (e.g., 1723, 24865). Can be a single int or list of ints for batch fetching."
+        }
+      },
+      "required": [
+        "course_no"
+      ],
+      "type": "object"
+    }
+  },
+  "get_tour_calendar": {
+    "description": "Fetch monthly departure calendar and tour schedule matrix on www.maitabi.jp for a given year and month.\n\nReturns a JSON string with daily departure schedule matrix, tour availability, and calendar dates.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "month": {
+          "description": "Month (1-12)",
+          "maximum": 12,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "travel_type": {
+          "anyOf": [
+            {
+              "description": "Category ID for Maitabi general tours (www.maitabi.jp).",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional category ID filter: 1=Domestic Mountain, 2=Domestic Travel, 3=Mountain Bus, 4=Overseas Mountain, 5=Overseas Travel"
+        },
+        "year": {
+          "description": "Year (e.g., 2026)",
+          "maximum": 2100,
+          "minimum": 2000,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "month"
+      ],
+      "type": "object"
+    }
+  },
+  "get_tour_detail": {
+    "description": "Fetch detailed information, schedule, pricing, and bus stops for a specific Maitabi mountain bus tour by course_no.\n\nReturns a JSON string containing complete tour itinerary, bus departure points, seat options, pricing, and lodging info.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "course_no": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Internal course number(s) on bus.maitabi.jp (e.g., 14241, 8518). Can be a single int or list of ints for batch fetching."
+        }
+      },
+      "required": [
+        "course_no"
+      ],
+      "type": "object"
+    }
+  },
+  "list_district_groups": {
+    "description": "Fetch mountain area/district groups and tour counts for Maitabi mountain bus tours.\n\nSupports cascading filtering—district groups and counts update dynamically based on other selected filters.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "area": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All)"
+        },
+        "bus_sheet": {
+          "anyOf": [
+            {
+              "description": "Bus seat configuration ID for mountain bus tours.",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double seat, 6=Taxi"
+        },
+        "course_cd": {
+          "anyOf": [
+            {
+              "maxLength": 50,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maitabi course code (e.g., 'S104C21')"
+        },
+        "day": {
+          "anyOf": [
+            {
+              "maximum": 31,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Departure day (1-31)"
+        },
+        "departure": {
+          "default": 1,
+          "description": "Departure point: 1=Tokyo (Takebashi/Shinjuku), 2=Osaka/Kyoto, 3=Nagoya",
+          "enum": [
+            1,
+            2,
+            3
+          ],
+          "type": "integer"
+        },
+        "keyword": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Search keyword in Japanese (e.g., '立山', '上高地')"
+        },
+        "month": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Departure month (1-12). Defaults to current month if omitted."
+        },
+        "return_day": {
+          "anyOf": [
+            {
+              "description": "Return date option ID for mountain bus tours relative to departure.",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Return date option: 1=1 day after departure, 2=2 days after, 3=3 days after, 4=4 days after, 5=5 days after"
+        },
+        "stay1": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso)"
+        },
+        "stay2": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mountain lodge ID for night 2"
+        },
+        "stay3": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mountain lodge ID for night 3"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "description": "Tour style ID for mountain bus tours.",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tour style: 1=Round-trip bus, 2=Outbound bus, 3=Inbound bus, 4=Round-trip lodge, 5=Outbound lodge, 6=Overnight day-trip, 7=Taxi plan"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "list_filters": {
+    "description": "Fetch available filter dropdown options, departure areas, tour styles, mountain lodges, and tour counts for Maitabi bus tours.\n\nSupports cascading filtering—options and counts update dynamically based on other selected filters.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "area": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All)"
+        },
+        "bus_sheet": {
+          "anyOf": [
+            {
+              "description": "Bus seat configuration ID for mountain bus tours.",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double seat, 6=Taxi"
+        },
+        "course_cd": {
+          "anyOf": [
+            {
+              "maxLength": 50,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maitabi course code (e.g., 'S104C21')"
+        },
+        "day": {
+          "anyOf": [
+            {
+              "maximum": 31,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Departure day (1-31)"
+        },
+        "departure": {
+          "default": 1,
+          "description": "Departure point: 1=Tokyo (Takebashi/Shinjuku), 2=Osaka/Kyoto, 3=Nagoya",
+          "enum": [
+            1,
+            2,
+            3
+          ],
+          "type": "integer"
+        },
+        "keyword": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Search keyword in Japanese (e.g., '立山', '上高地')"
+        },
+        "month": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Departure month (1-12). Defaults to current month if omitted."
+        },
+        "return_day": {
+          "anyOf": [
+            {
+              "description": "Return date option ID for mountain bus tours relative to departure.",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Return date option: 1=1 day after departure, 2=2 days after, 3=3 days after, 4=4 days after, 5=5 days after"
+        },
+        "stay1": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso)"
+        },
+        "stay2": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mountain lodge ID for night 2"
+        },
+        "stay3": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mountain lodge ID for night 3"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "description": "Tour style ID for mountain bus tours.",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tour style: 1=Round-trip bus, 2=Outbound bus, 3=Inbound bus, 4=Round-trip lodge, 5=Outbound lodge, 6=Overnight day-trip, 7=Taxi plan"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "search_general_tours": {
+    "description": "Search general travel tours and mountain climbing packages on www.maitabi.jp.\n\nReturns a JSON string containing matching tours, total count, pagination, sorting, and categories.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "category_nos1": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Subcategory Nos for Style/Duration (e.g. [36] for Day trip, [259] for Overnight)"
+        },
+        "category_nos2": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Subcategory Nos for Difficulty/Shoes (e.g. [363] for Grade 1 / Introduction)"
+        },
+        "category_nos3": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Subcategory Nos for Departure Region (e.g. [13] for Kanto, [15] for Tokai)"
+        },
+        "category_nos4": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Subcategory Nos for Themes/Tours"
+        },
+        "category_nos5": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Subcategory Nos for Guides"
+        },
+        "day": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Departure day of month (1-31). Can be a single int, a list of ints, or a string range (e.g., '14-16, 20')."
+        },
+        "keyword": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Search keyword in Japanese (e.g., '富士山', '京都')"
+        },
+        "list_order": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sort order: 'startDateAsc' (departure earliest), 'saikouStatus' (departure status), 'yoyakuStatus' (availability), 'priceAsc' (price low to high), 'priceDesc' (price high to low)"
+        },
+        "max_price": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum price in JPY (e.g., 50000). Filters the results before returning."
+        },
+        "min_price": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Minimum price in JPY (e.g., 10000). Filters the results before returning."
+        },
+        "page": {
+          "default": 1,
+          "description": "Page number (1-based)",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "require_available_seats": {
+          "default": false,
+          "description": "If True, filters out full/closed tours (満席, 受付終了).",
+          "type": "boolean"
+        },
+        "travel_type": {
+          "default": 1,
+          "description": "Category ID: 1=Domestic Mountain (default), 2=Domestic Travel, 3=Mountain Bus, 4=Overseas Mountain, 5=Overseas Travel",
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "type": "integer"
+        },
+        "year_month": {
+          "anyOf": [
+            {
+              "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Departure year-month string in 'YYYY-MM' format (e.g., '2026-08')"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "search_tours": {
+    "description": "Search mountain bus tours and lodge packages on Maitabi (bus.maitabi.jp) with detailed filter criteria.\n\nReturns a JSON string containing matching bus tours, seat options, pricing, departure dates, and course numbers.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "area": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All)"
+        },
+        "bus_sheet": {
+          "anyOf": [
+            {
+              "description": "Bus seat configuration ID for mountain bus tours.",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double seat, 6=Taxi"
+        },
+        "course_cd": {
+          "anyOf": [
+            {
+              "maxLength": 50,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maitabi course code (e.g., 'S104C21')"
+        },
+        "day": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Departure day (1-31). Can be a single int, a list of ints, or a string range (e.g., '14-16, 20')."
+        },
+        "departure": {
+          "default": 1,
+          "description": "Departure point: 1=Tokyo (Takebashi/Shinjuku), 2=Osaka/Kyoto, 3=Nagoya",
+          "enum": [
+            1,
+            2,
+            3
+          ],
+          "type": "integer"
+        },
+        "keyword": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Search keyword in Japanese (e.g., '立山', '上高地')"
+        },
+        "max_price": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum price in JPY (e.g., 20000). Filters the results before returning."
+        },
+        "min_price": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Minimum price in JPY (e.g., 10000). Filters the results before returning."
+        },
+        "month": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Departure month (1-12)"
+        },
+        "page": {
+          "default": 1,
+          "description": "Page number (1-based)",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "require_available_seats": {
+          "default": false,
+          "description": "If True, filters out full/closed tours (満席, 受付終了).",
+          "type": "boolean"
+        },
+        "return_day": {
+          "anyOf": [
+            {
+              "description": "Return date option ID for mountain bus tours relative to departure.",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Return date option: 1=1 day after departure, 2=2 days after, 3=3 days after, 4=4 days after, 5=5 days after"
+        },
+        "stay1": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso)"
+        },
+        "stay2": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mountain lodge ID for night 2"
+        },
+        "stay3": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mountain lodge ID for night 3"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "description": "Tour style ID for mountain bus tours.",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tour style: 1=Round-trip bus, 2=Outbound bus, 3=Inbound bus, 4=Round-trip lodge, 5=Outbound lodge, 6=Overnight day-trip, 7=Taxi plan"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

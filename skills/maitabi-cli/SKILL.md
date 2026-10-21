@@ -106,7 +106,7 @@ Pipe tips: `maitabi search-tours ... --output tours.json`, `maitabi search-tours
 
 ## 5. Filter ID reference
 
-See `../maitabi-bus-extractor/references/filter-mapping.md` for departure/area/style/return-day/seat/lodge ID tables.
+See `references/filter-mapping.md` for departure/area/style/return-day/seat/lodge ID tables.
 
 ## 6. Troubleshooting
 
