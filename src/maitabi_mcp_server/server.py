@@ -6,7 +6,7 @@ import os
 
 from fastmcp import FastMCP
 
-from maitabi_mcp_server.services.http_client import close_http_client
+from maitabi_mcp_server.services.http import close_http_client
 from maitabi_mcp_server.tools.bus_tools import register_bus_tools
 from maitabi_mcp_server.tools.general_tools import register_general_tools
 

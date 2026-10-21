@@ -9,13 +9,13 @@ import asyncio
 
 from maitabi_mcp_server.cli.parser import build_parser
 from maitabi_mcp_server.server import mcp
-from maitabi_mcp_server.services.bus_service import (
+from maitabi_mcp_server.services.bus import (
     get_tour_detail_service,
     list_district_groups_service,
     list_filters_service,
     search_tours_service,
 )
-from maitabi_mcp_server.services.general_service import (
+from maitabi_mcp_server.services.general import (
     get_general_tour_detail_service,
     get_tour_calendar_service,
     search_general_tours_service,

@@ -31,8 +31,8 @@ def test_core_services_do_not_import_wrappers():
     import subprocess
 
     code = (
-        "import maitabi_mcp_server.services.bus_service as b, "
-        "maitabi_mcp_server.services.general_service as g; "
+        "import maitabi_mcp_server.services.bus as b, "
+        "maitabi_mcp_server.services.general as g; "
         "mods = set(b.__dict__.get('__name__', '')) ; "
         "import sys; "
         "bad = [m for m in sys.modules if 'maitabi_mcp_server.tools' in m "

@@ -1,19 +1,29 @@
-"""MCP tools for general Mainichi Travel tours and calendar schedule."""
+"""MCP tools for general Mainichi Travel tours and calendar schedule.
 
+Thin wrappers: exact tool signatures define the public MCP schema; each tool
+maps args → Input model → service → JSON string. No business logic here.
+"""
+
+import json
 from typing import Annotated, Optional
 from pydantic import Field
 
-from maitabi_mcp_server.models import (
+from maitabi_mcp_server.core.enums import TravelType
+from maitabi_mcp_server.core.inputs import (
     GetGeneralTourDetailInput,
     GetTourCalendarInput,
     SearchGeneralToursInput,
-    TravelType,
 )
-from maitabi_mcp_server.services.general_service import (
+from maitabi_mcp_server.services.general import (
     get_general_tour_detail_service,
     get_tour_calendar_service,
     search_general_tours_service,
 )
+
+
+def _dumps(data: dict) -> str:
+    """Serialize a service dict to the public JSON wire format."""
+    return json.dumps(data, ensure_ascii=False, indent=2)
 
 
 def register_general_tools(mcp) -> None:
@@ -116,7 +126,8 @@ def register_general_tools(mcp) -> None:
             category_nos4=category_nos4,
             category_nos5=category_nos5,
         )
-        return await search_general_tours_service(input_data)
+        return _dumps(await search_general_tours_service(input_data))
+
     @mcp.tool()
     async def get_general_tour_detail(
         course_no: Annotated[
@@ -130,8 +141,10 @@ def register_general_tools(mcp) -> None:
 
         Returns a JSON string containing tour itinerary, meal conditions, price matrix, lodging, and booking links.
         """
-        return await get_general_tour_detail_service(
-            GetGeneralTourDetailInput(course_no=course_no)
+        return _dumps(
+            await get_general_tour_detail_service(
+                GetGeneralTourDetailInput(course_no=course_no)
+            )
         )
 
     @mcp.tool()
@@ -151,6 +164,8 @@ def register_general_tools(mcp) -> None:
 
         Returns a JSON string with daily departure schedule matrix, tour availability, and calendar dates.
         """
-        return await get_tour_calendar_service(
-            GetTourCalendarInput(year=year, month=month, travel_type=travel_type)
+        return _dumps(
+            await get_tour_calendar_service(
+                GetTourCalendarInput(year=year, month=month, travel_type=travel_type)
+            )
         )

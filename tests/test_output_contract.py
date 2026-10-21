@@ -12,17 +12,17 @@ import pytest
 import respx
 from httpx import Response
 
-from maitabi_mcp_server.models import (
+from maitabi_mcp_server.core.inputs import (
     GetBusTourDetailInput,
     SearchBusToursInput,
     SearchGeneralToursInput,
 )
-from maitabi_mcp_server.services.bus_service import (
+from maitabi_mcp_server.core.errors import RATE_LIMIT_ERROR
+from maitabi_mcp_server.services.bus import (
     get_tour_detail_service,
     search_tours_service,
 )
-from maitabi_mcp_server.services.general_service import (
-    RATE_LIMIT_ERROR,
+from maitabi_mcp_server.services.general import (
     search_general_tours_service,
 )
 
@@ -39,8 +39,9 @@ BUS_TOUR_ITEM = {
 }
 
 
-def _load(raw: str) -> dict:
-    return json.loads(raw)
+def _load(result) -> dict:
+    """Services return dicts; tolerate JSON strings too (legacy shape)."""
+    return json.loads(result) if isinstance(result, str) else result
 
 
 @respx.mock

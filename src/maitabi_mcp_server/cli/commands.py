@@ -9,41 +9,44 @@ import argparse
 import asyncio
 import json
 
-from maitabi_mcp_server.models import (
+from maitabi_mcp_server.core.enums import (
     BusSeatType,
     DeparturePoint,
+    ReturnDayOption,
+    TourStyle,
+    TravelType,
+)
+from maitabi_mcp_server.core.inputs import (
     GetBusTourDetailInput,
     GetGeneralTourDetailInput,
     GetTourCalendarInput,
     ListDistrictGroupsInput,
     ListFiltersInput,
-    ReturnDayOption,
     SearchBusToursInput,
     SearchGeneralToursInput,
-    TourStyle,
-    TravelType,
 )
-from maitabi_mcp_server.services.bus_service import (
+from maitabi_mcp_server.services.bus import (
     get_tour_detail_service,
     list_district_groups_service,
     list_filters_service,
     search_tours_service,
 )
-from maitabi_mcp_server.services.general_service import (
+from maitabi_mcp_server.services.general import (
     get_general_tour_detail_service,
     get_tour_calendar_service,
     search_general_tours_service,
 )
-from maitabi_mcp_server.services.http_client import close_http_client
+from maitabi_mcp_server.services.http import close_http_client
 
 
-def _emit(raw_json: str, args: argparse.Namespace) -> None:
-    text = raw_json
-    if getattr(args, "pretty", False):
-        try:
-            text = json.dumps(json.loads(raw_json), ensure_ascii=False, indent=2)
-        except (json.JSONDecodeError, TypeError):
-            pass
+def _emit(data: dict, args: argparse.Namespace) -> None:
+    """Serialize the service dict to the CLI's JSON wire format.
+
+    Always indent=2 / ensure_ascii=False — byte-identical to the historic
+    output (services used to pre-serialize with the same settings), so
+    `--pretty` stays a compat no-op.
+    """
+    text = json.dumps(data, ensure_ascii=False, indent=2)
     output = getattr(args, "output", None)
     if output:
         with open(output, "w", encoding="utf-8") as f:
@@ -52,7 +55,7 @@ def _emit(raw_json: str, args: argparse.Namespace) -> None:
         print(text)
 
 
-async def _run(service_coro) -> str:
+async def _run(service_coro) -> dict:
     try:
         return await service_coro
     finally:

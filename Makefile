@@ -28,7 +28,7 @@ test: ## Run offline test suite (pytest, no network)
 	uv run pytest tests/ -v
 
 smoke: ## LIVE network smoke check against production API (not part of make test)
-	uv run python -c "import asyncio; from maitabi_mcp_server.services.bus_service import list_filters_service; from maitabi_mcp_server.models import ListFiltersInput; asyncio.run(list_filters_service(ListFiltersInput())); print('Smoke check passed!')"
+	uv run python -c "import asyncio; from maitabi_mcp_server.services.bus import list_filters_service; from maitabi_mcp_server.core.inputs import ListFiltersInput; asyncio.run(list_filters_service(ListFiltersInput())); print('Smoke check passed!')"
 
 cli-help: ## Show CLI help (optional wrapper, default distribution is MCP)
 	uv run maitabi --help

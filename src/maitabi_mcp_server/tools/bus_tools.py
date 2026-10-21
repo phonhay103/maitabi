@@ -1,24 +1,36 @@
-"""MCP tools for Maitabi mountain bus tours."""
+"""MCP tools for Maitabi mountain bus tours.
 
+Thin wrappers: exact tool signatures define the public MCP schema; each tool
+maps args → Input model → service → JSON string. No business logic here.
+"""
+
+import json
 from typing import Annotated, Optional
 from pydantic import Field
 
-from maitabi_mcp_server.models import (
+from maitabi_mcp_server.core.enums import (
     BusSeatType,
     DeparturePoint,
+    ReturnDayOption,
+    TourStyle,
+)
+from maitabi_mcp_server.core.inputs import (
     GetBusTourDetailInput,
     ListDistrictGroupsInput,
     ListFiltersInput,
-    ReturnDayOption,
     SearchBusToursInput,
-    TourStyle,
 )
-from maitabi_mcp_server.services.bus_service import (
+from maitabi_mcp_server.services.bus import (
     get_tour_detail_service,
     list_district_groups_service,
     list_filters_service,
     search_tours_service,
 )
+
+
+def _dumps(data: dict) -> str:
+    """Serialize a service dict to the public JSON wire format."""
+    return json.dumps(data, ensure_ascii=False, indent=2)
 
 
 def register_bus_tools(mcp) -> None:
@@ -105,20 +117,22 @@ def register_bus_tools(mcp) -> None:
 
         Supports cascading filtering—options and counts update dynamically based on other selected filters.
         """
-        return await list_filters_service(
-            ListFiltersInput(
-                departure=departure,
-                month=month,
-                day=day,
-                area=area,
-                style=style,
-                return_day=return_day,
-                bus_sheet=bus_sheet,
-                stay1=stay1,
-                stay2=stay2,
-                stay3=stay3,
-                course_cd=course_cd,
-                keyword=keyword,
+        return _dumps(
+            await list_filters_service(
+                ListFiltersInput(
+                    departure=departure,
+                    month=month,
+                    day=day,
+                    area=area,
+                    style=style,
+                    return_day=return_day,
+                    bus_sheet=bus_sheet,
+                    stay1=stay1,
+                    stay2=stay2,
+                    stay3=stay3,
+                    course_cd=course_cd,
+                    keyword=keyword,
+                )
             )
         )
 
@@ -203,20 +217,22 @@ def register_bus_tools(mcp) -> None:
 
         Supports cascading filtering—district groups and counts update dynamically based on other selected filters.
         """
-        return await list_district_groups_service(
-            ListDistrictGroupsInput(
-                departure=departure,
-                month=month,
-                day=day,
-                area=area,
-                style=style,
-                return_day=return_day,
-                bus_sheet=bus_sheet,
-                stay1=stay1,
-                stay2=stay2,
-                stay3=stay3,
-                course_cd=course_cd,
-                keyword=keyword,
+        return _dumps(
+            await list_district_groups_service(
+                ListDistrictGroupsInput(
+                    departure=departure,
+                    month=month,
+                    day=day,
+                    area=area,
+                    style=style,
+                    return_day=return_day,
+                    bus_sheet=bus_sheet,
+                    stay1=stay1,
+                    stay2=stay2,
+                    stay3=stay3,
+                    course_cd=course_cd,
+                    keyword=keyword,
+                )
             )
         )
 
@@ -330,7 +346,7 @@ def register_bus_tools(mcp) -> None:
             require_available_seats=require_available_seats,
             page=page,
         )
-        return await search_tours_service(input_data)
+        return _dumps(await search_tours_service(input_data))
 
     @mcp.tool()
     async def get_tour_detail(
@@ -345,6 +361,6 @@ def register_bus_tools(mcp) -> None:
 
         Returns a JSON string containing complete tour itinerary, bus departure points, seat options, pricing, and lodging info.
         """
-        return await get_tour_detail_service(
-            GetBusTourDetailInput(course_no=course_no)
+        return _dumps(
+            await get_tour_detail_service(GetBusTourDetailInput(course_no=course_no))
         )
