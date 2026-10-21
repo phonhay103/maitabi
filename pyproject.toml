@@ -1,6 +1,6 @@
 [project]
 name = "maitabi-mcp-server"
-version = "0.2.2"
+version = "0.3.0"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [

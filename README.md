@@ -6,6 +6,8 @@ Docker Hub Repository: [phonhay103/maitabi-mcp-server](https://hub.docker.com/r/
 
 ## Tools Provided
 
+Full parameter reference (MCP args, CLI flags, defaults, endpoints): **[`docs/TOOL_CATALOG.md`](docs/TOOL_CATALOG.md)** (generated from code — always current).
+
 ### Mountain Bus Tours (毎日あるぺん号 - `bus.maitabi.jp`)
 - `list_filters`: Fetch available filter options, departure areas, tour styles, mountain lodges, and tour counts for mountain bus tours.
 - `list_district_groups`: Fetch area/district groups and tour counts for mountain bus tours.
@@ -144,7 +146,17 @@ maitabi get-tour-detail --course-no 14241 --pretty
 maitabi get-tour-calendar --year 2026 --month 8 --pretty
 ```
 
-Every subcommand accepts `--pretty` (indented JSON) and `--output FILE`. See `make cli-help` for the full list.
+Every subcommand accepts `--pretty` (indented JSON) and `--output FILE`. See `make cli-help` for the full list, or [`docs/TOOL_CATALOG.md`](docs/TOOL_CATALOG.md) for all flags.
+
+### Exit codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Upstream/network error (result payload contains `error`, incl. rate limiting) |
+| 2 | Input error (bad flag value or failed validation) |
+
+Scripts can branch on these, e.g. `maitabi search-tours ... || echo "upstream issue" >&2`.
 
 ### Rate limits
 
@@ -162,14 +174,21 @@ When the cap is hit, wrappers return `{"error": "Rate limited by www.maitabi.jp 
 ### Makefile Commands
 
 ```bash
-make help          # Show available Makefile targets
-make install       # Install dependencies using uv
-make dev           # Run the MCP server locally over stdio
-make dev-http      # Run the MCP server locally over Streamable HTTP (Port 8000)
-make test          # Run test suite
-make docker-build  # Build 2-stage Docker image (Python 3.14)
-make build         # Build Python package wheel & sdist
+make help           # Show available Makefile targets
+make install        # Install dependencies using uv
+make dev            # Run the MCP server locally over stdio
+make dev-http       # Run the MCP server locally over Streamable HTTP (Port 8000)
+make test           # Run the offline test suite (pytest, no network)
+make smoke          # LIVE smoke check against the production API
+make catalog        # Regenerate docs/TOOL_CATALOG.md + skill reference copies
+make catalog-check  # Fail if generated files are stale (what CI runs)
+make docker-build   # Build 2-stage Docker image (Python 3.14)
+make build          # Build Python package wheel & sdist
 ```
+
+### Architecture (for contributors)
+
+See [`AGENTS.md`](AGENTS.md). In short: parameters live once in `core/inputs.py`, services in `services/`, and both the MCP tools and the CLI parser are generated from `registry.py`; the tool catalog is generated from that by `scripts/gen_catalog.py`, so the interfaces cannot drift.
 
 ### Local Development Client Configuration
 
