@@ -1,4 +1,4 @@
-.PHONY: help install dev dev-http dev-sse test cli-help cli-example docker-build docker-run docker-run-http build clean
+.PHONY: help install dev dev-http dev-sse test smoke cli-help cli-example docker-build docker-run docker-run-http build catalog catalog-check clean
 
 DOCKER_USER ?= phonhay103
 IMAGE_NAME ?= maitabi-mcp-server
@@ -24,8 +24,11 @@ dev-http: ## Run the MCP server locally using Streamable HTTP transport
 dev-sse: ## Run the MCP server locally using SSE transport
 	uv run maitabi-mcp-server --transport sse --host $(HOST) --port $(PORT)
 
-test: ## Run test suite
-	uv run python -c "import asyncio; from maitabi_mcp_server.services.bus_service import list_filters_service; from maitabi_mcp_server.models import ListFiltersInput; asyncio.run(list_filters_service(ListFiltersInput())); print('Tests passed!')"
+test: ## Run offline test suite (pytest, no network)
+	uv run pytest tests/ -v
+
+smoke: ## LIVE network smoke check against production API (not part of make test)
+	uv run python -c "import asyncio; from maitabi_mcp_server.services.bus_service import list_filters_service; from maitabi_mcp_server.models import ListFiltersInput; asyncio.run(list_filters_service(ListFiltersInput())); print('Smoke check passed!')"
 
 cli-help: ## Show CLI help (optional wrapper, default distribution is MCP)
 	uv run maitabi --help

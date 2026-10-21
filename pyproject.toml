@@ -35,6 +35,18 @@ maitabi = "maitabi_mcp_server.cli_main:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "respx>=0.21",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+
 [tool.uv]
 # Supply-chain lag: a release must be 7 days old before the resolver may pick
 # it. Malicious or broken uploads are usually yanked within hours, so waiting
