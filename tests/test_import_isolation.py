@@ -16,13 +16,13 @@ def test_cli_imports_without_mcp_deps():
         return orig(name, *args, **kwargs)
 
     for mod in [m for m in list(sys.modules) if m.split(".")[0] in blocked
-                or m.startswith(("maitabi_mcp_server.cli", "maitabi_mcp_server.cli_main"))]:
+                or m.startswith("maitabi_mcp_server.cli")]:
         del sys.modules[mod]
     builtins.__import__ = guard
     try:
         import maitabi_mcp_server.cli.commands  # noqa: F401
         import maitabi_mcp_server.cli.parser  # noqa: F401
-        import maitabi_mcp_server.cli_main  # noqa: F401
+        import maitabi_mcp_server.cli.main  # noqa: F401
     finally:
         builtins.__import__ = orig
 
@@ -35,7 +35,8 @@ def test_core_services_do_not_import_wrappers():
         "maitabi_mcp_server.services.general as g; "
         "mods = set(b.__dict__.get('__name__', '')) ; "
         "import sys; "
-        "bad = [m for m in sys.modules if 'maitabi_mcp_server.tools' in m "
+        "bad = [m for m in sys.modules if 'maitabi_mcp_server.mcp' in m "
+        "or 'maitabi_mcp_server.tools' in m "
         "or 'maitabi_mcp_server.cli' in m or m.split('.')[0] in ('fastmcp','mcp')]; "
         "assert not bad, bad; print('core isolation OK')"
     )

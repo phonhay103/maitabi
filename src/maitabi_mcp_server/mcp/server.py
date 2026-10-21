@@ -1,14 +1,13 @@
-"""Main server entrypoint for Maitabi MCP Server."""
+"""MCP server entrypoint: factory, transport argument parsing, `main()`."""
 
 import argparse
-from contextlib import asynccontextmanager
 import os
+from contextlib import asynccontextmanager
 
 from fastmcp import FastMCP
 
+from maitabi_mcp_server.mcp.tools import register_tools
 from maitabi_mcp_server.services.http import close_http_client
-from maitabi_mcp_server.tools.bus_tools import register_bus_tools
-from maitabi_mcp_server.tools.general_tools import register_general_tools
 
 
 @asynccontextmanager
@@ -19,11 +18,15 @@ async def app_lifespan(server):
         await close_http_client()
 
 
-mcp = FastMCP("maitabi-mcp-server", lifespan=app_lifespan)
+def create_mcp() -> FastMCP:
+    """Build a fully wired FastMCP instance (fresh per call)."""
+    mcp = FastMCP("maitabi-mcp-server", lifespan=app_lifespan)
+    register_tools(mcp)
+    return mcp
 
-# Register all tools
-register_bus_tools(mcp)
-register_general_tools(mcp)
+
+# Default instance for `maitabi-mcp-server` / tests.
+mcp = create_mcp()
 
 
 def main():

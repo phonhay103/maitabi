@@ -9,7 +9,7 @@ import asyncio
 import json
 from pathlib import Path
 
-from maitabi_mcp_server.server import mcp
+from maitabi_mcp_server.mcp.server import mcp
 
 FIXTURE = Path(__file__).parent / "fixtures" / "mcp_schema.json"
 

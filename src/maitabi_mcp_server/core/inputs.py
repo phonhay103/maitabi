@@ -68,7 +68,7 @@ class BusFilterBase(BaseModel):
         Optional[BusSeatType],
         Field(
             default=None,
-            description="Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double, 6=Taxi",
+            description="Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double seat, 6=Taxi",
         ),
     ] = None
     stay1: Annotated[

@@ -8,7 +8,7 @@ No network access.
 import asyncio
 
 from maitabi_mcp_server.cli.parser import build_parser
-from maitabi_mcp_server.server import mcp
+from maitabi_mcp_server.mcp.server import mcp
 from maitabi_mcp_server.services.bus import (
     get_tour_detail_service,
     list_district_groups_service,
