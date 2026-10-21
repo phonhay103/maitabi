@@ -30,6 +30,12 @@ test: ## Run offline test suite (pytest, no network)
 smoke: ## LIVE network smoke check against production API (not part of make test)
 	uv run python -c "import asyncio; from maitabi_mcp_server.services.bus import list_filters_service; from maitabi_mcp_server.core.inputs import ListFiltersInput; asyncio.run(list_filters_service(ListFiltersInput())); print('Smoke check passed!')"
 
+catalog: ## Regenerate docs/TOOL_CATALOG.md + skill filter-mapping copies
+	uv run python scripts/gen_catalog.py
+
+catalog-check: ## Fail when generated catalog files are stale (used by CI)
+	uv run python scripts/gen_catalog.py --check
+
 cli-help: ## Show CLI help (optional wrapper, default distribution is MCP)
 	uv run maitabi --help
 
