@@ -3,6 +3,7 @@
 import pytest
 
 from maitabi.cli.parser import build_parser
+from maitabi.version import get_version
 
 
 def _group(name: str):
@@ -118,3 +119,17 @@ def test_calendar_requires_year_month():
 def test_mcp_subcommand_takes_transport_flags():
     args = build_parser().parse_args(["mcp", "--transport", "streamable-http", "--port", "9000"])
     assert (args.domain, args.transport, args.port) == ("mcp", "streamable-http", 9000)
+
+
+def test_version_flag_prints_the_installed_version(capsys):
+    with pytest.raises(SystemExit) as exc:
+        build_parser().parse_args(["--version"])
+    assert exc.value.code == 0
+    assert capsys.readouterr().out.strip() == f"maitabi {get_version()}"
+
+
+def test_mcp_subcommand_has_its_own_version_flag(capsys):
+    with pytest.raises(SystemExit) as exc:
+        build_parser().parse_args(["mcp", "--version"])
+    assert exc.value.code == 0
+    assert capsys.readouterr().out.strip() == f"maitabi mcp {get_version()}"

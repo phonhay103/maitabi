@@ -20,6 +20,7 @@ from pydantic.fields import FieldInfo
 from maitabi.cli.fields import plan_field
 from maitabi.mcp_args import add_mcp_args
 from maitabi.registry import ACTIONS, DOMAINS
+from maitabi.version import get_version
 
 DOMAIN_HELP = {
     "bus": "Mountain bus tours (api.bus.maitabi.jp)",
@@ -57,6 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="maitabi",
         description="Maitabi CLI — bus tours, general tours, and the MCP server in one command",
     )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {get_version()}")
     domains = parser.add_subparsers(dest="domain", metavar="<group>")
 
     for domain in DOMAINS:

@@ -11,6 +11,7 @@ from fastmcp import FastMCP
 
 from maitabi.mcp.tools import register_tools
 from maitabi.services.http import close_http_client
+from maitabi.version import get_version
 
 
 @asynccontextmanager
@@ -23,7 +24,7 @@ async def app_lifespan(_server: FastMCP) -> AsyncGenerator[None]:
 
 def create_mcp() -> FastMCP:
     """Build a fully wired FastMCP instance (fresh per call)."""
-    mcp = FastMCP("maitabi", lifespan=app_lifespan)
+    mcp = FastMCP("maitabi", version=get_version(), lifespan=app_lifespan)
     register_tools(mcp)
     return mcp
 

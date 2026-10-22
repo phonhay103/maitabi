@@ -26,6 +26,7 @@ Every data subcommand accepts:
 
 | Flag | Effect |
 |------|--------|
+| `--version` | Print the installed version (`maitabi --version`, `maitabi mcp --version`) |
 | `--pretty` | Pretty-print JSON (indent=2) |
 | `--output FILE` | Write JSON to FILE instead of stdout |
 
@@ -118,6 +119,7 @@ See `references/filter-mapping.md` for departure/area/style/return-day/seat/lodg
 ## 6. Troubleshooting
 
 - `maitabi: command not found` → run the same command as `uvx maitabi ...`; do not install it.
+- Wrong or unknown version → `maitabi --version` prints it; the MCP `serverInfo` reports the same value.
 - Empty `items` → widen filters (drop `--day`/`--area`/price caps) or check `--month` (backend requires month).
 - Network errors appear as `{"error": ..., "detail": ...}` JSON with exit code 1 — retry, don't change filters.
 - `{"error": "Rate limited by www.maitabi.jp (60 requests/min per IP)", ...}` → `general` commands are capped at 60 req/min per IP. Wait ~60s and retry manually, e.g. `sleep 60 && maitabi general get-calendar --year 2026 --month 11`. Large `--day` ranges fan out into parallel requests and hit the cap faster.

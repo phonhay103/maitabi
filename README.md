@@ -15,6 +15,7 @@ Search **Maitabi (まいたび — 毎日新聞旅行 / 毎日あるぺん号)**
 ```bash
 uv tool install maitabi     # installs the `maitabi` command on your PATH
 uv tool upgrade maitabi     # later, to update it
+maitabi --version           # confirm which version is running
 ```
 
 Nothing installed? `uvx maitabi ...` runs the same published version on demand, e.g. `uvx maitabi bus search-tours --month 11`.

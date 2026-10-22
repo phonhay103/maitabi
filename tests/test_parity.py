@@ -19,6 +19,7 @@ from maitabi.services.bus import (
 )
 from maitabi.services.general import get_tour_calendar_service, search_general_tours_service
 from maitabi.services.general_detail import get_general_tour_detail_service
+from maitabi.version import get_version
 
 # (domain, cli command) -> (mcp_tool, service callable)
 EXPECTED_ACTIONS = {
@@ -75,3 +76,9 @@ def test_mcp_server_is_reachable_from_the_cli():
     parser = build_parser()
     domains = next(a for a in parser._actions if a.dest == "domain")
     assert "mcp" in domains.choices
+
+
+def test_mcp_server_reports_the_installed_version():
+    """`tools/list` clients see our version, not the fastmcp runtime's."""
+    assert mcp.name == "maitabi"
+    assert mcp.version == get_version()

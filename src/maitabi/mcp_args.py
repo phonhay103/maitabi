@@ -7,6 +7,8 @@ fastmcp (the CLI must stay importable with MCP dependencies absent).
 import argparse
 import os
 
+from maitabi.version import get_version
+
 # Binding all interfaces is intentional: the HTTP/SSE transports exist to be
 # reached from outside the process (container or LAN), not only from localhost.
 DEFAULT_HOST = "0.0.0.0"  # noqa: S104
@@ -14,6 +16,7 @@ DEFAULT_HOST = "0.0.0.0"  # noqa: S104
 
 def add_mcp_args(parser: argparse.ArgumentParser) -> None:
     """Add the MCP transport flags to a parser."""
+    parser.add_argument("--version", action="version", version=f"%(prog)s {get_version()}")
     parser.add_argument(
         "--transport",
         choices=["stdio", "sse", "streamable-http"],
