@@ -1,6 +1,6 @@
 # Maitabi (Python)
 
-Search **Maitabi (まいたび — 毎日新聞旅行 / 毎日あるぺん号)** from one package: mountain bus tours (`bus.maitabi.jp`), general travel and trekking tours, and departure calendars (`www.maitabi.jp`). It ships as a CLI, an MCP server, and three agent skills — all driven by the same seven actions.
+Search **Maitabi (まいたび — 毎日新聞旅行 / 毎日あるぺん号)** from one package: mountain bus tours (`bus.maitabi.jp`), general travel and trekking tours, and departure calendars (`www.maitabi.jp`). It ships as a CLI, an MCP server, and three agent skills — all driven by the same eight actions.
 
 > Unofficial client. Not affiliated with 毎日新聞旅行.
 
@@ -9,6 +9,15 @@ Search **Maitabi (まいたび — 毎日新聞旅行 / 毎日あるぺん号)**
 | **CLI** | you want commands, scripts, or JSON for `jq` | `uvx maitabi --help` |
 | **MCP server** | you want the tools inside an MCP client | `uvx maitabi mcp` |
 | **Skills** | you want an agent to know the workflows | `npx skills add phonhay103/maitabi -g` |
+
+## Install
+
+```bash
+uv tool install maitabi     # installs the `maitabi` command on your PATH
+uv tool upgrade maitabi     # later, to update it
+```
+
+Nothing installed? `uvx maitabi ...` runs the same published version on demand, e.g. `uvx maitabi bus search-tours --month 11`.
 
 ## Quick start (CLI)
 
@@ -26,7 +35,7 @@ maitabi bus get-tour-detail --course-no 14241
 maitabi general get-calendar --year 2026 --month 11 --travel-type 1
 ```
 
-Install permanently with `uv tool install maitabi` or `pip install maitabi`. Every data command accepts `--pretty` and `--output FILE`.
+Every data command accepts `--pretty` and `--output FILE`.
 
 ## Output contract
 
