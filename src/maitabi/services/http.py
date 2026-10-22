@@ -66,6 +66,30 @@ async def get_json(
     return data
 
 
+async def get_html(
+    url: str,
+    params: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
+) -> str | dict[str, Any]:
+    """GET `url` and return the response body as text, or an error payload.
+
+    Only www.maitabi.jp's detail pages need this: they expose no JSON endpoint,
+    so the data has to come from the rendered page. Failures are normalized
+    exactly like `get_json` — never raised.
+    """
+    client = get_http_client()
+    try:
+        res = await client.get(url, params=cast(Any, params))
+        res.raise_for_status()
+        text = res.text
+    except httpx.HTTPStatusError as e:
+        return upstream_http_error(e.response.status_code, str(e))
+    except httpx.RequestError as e:
+        return connection_error(str(e))
+    if "Too Many Attempts." in text[:2000]:
+        return rate_limit_error()
+    return text
+
+
 async def gather_limited[T, R](factory: Callable[[T], Awaitable[R]], items: Sequence[T]) -> list[R]:
     """Run `factory(item)` for each item with bounded concurrency, order kept.
 

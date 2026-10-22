@@ -9,7 +9,7 @@ import types
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Union, get_args, get_origin
+from typing import Literal, Union, get_args, get_origin
 
 from pydantic.fields import FieldInfo
 
@@ -81,6 +81,10 @@ def plan_field(name: str, info: FieldInfo) -> FieldPlan:
 
     if info.annotation is bool:
         return FieldPlan(flag, metavar, False, bool(default), None, True, None, None)
+
+    literal_choices = [arg for member in members if get_origin(member) is Literal for arg in get_args(member)]
+    if literal_choices:
+        return FieldPlan(flag, metavar, required, default, str, False, list(literal_choices), None)
 
     enum_cls = _enum_of(members)
     if enum_cls is not None:

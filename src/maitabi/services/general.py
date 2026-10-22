@@ -13,7 +13,7 @@ domain uses (`course_no`, `course_cd`, `title`, `date`, `price`, `status`,
 
 from typing import Any
 
-from maitabi.config import API_BASE, MAIN_BASE
+from maitabi.config import MAIN_BASE
 from maitabi.core.days import parse_days
 from maitabi.core.envelope import as_int, dict_items, envelope, query_of
 from maitabi.core.errors import RATE_LIMIT_ERROR
@@ -24,11 +24,7 @@ from maitabi.core.filters import (
     parse_price_jpy,
     within_price_range,
 )
-from maitabi.core.inputs import (
-    GetGeneralTourDetailInput,
-    GetTourCalendarInput,
-    SearchGeneralToursInput,
-)
+from maitabi.core.inputs import GetTourCalendarInput, SearchGeneralToursInput
 from maitabi.services.http import gather_limited, get_json
 
 SEARCH_URL = f"{MAIN_BASE}/api/v1/category_search"
@@ -133,18 +129,6 @@ async def search_general_tours_service(input: SearchGeneralToursInput) -> dict[s
         count = as_int(((data.get("meta") or {}).get("paging") or {}).get("total"))
 
     return envelope(items=_filter_items(input, items), count=count, page=input.page, query=query_of(input))
-
-
-async def get_general_tour_detail_service(input: GetGeneralTourDetailInput) -> dict[str, Any]:
-    """Fetch complete details for a general tour (shared tour_detail endpoint)."""
-    if isinstance(input.course_no, list):
-
-        async def fetch_one(c_no: int) -> dict[str, Any]:
-            return await get_json(f"{API_BASE}/tour_detail", params={"course_no": str(c_no)})
-
-        results = await gather_limited(fetch_one, input.course_no)
-        return envelope(items=results, count=len(results), page=None, query=query_of(input))
-    return await get_json(f"{API_BASE}/tour_detail", params={"course_no": str(input.course_no)})
 
 
 async def get_tour_calendar_service(input: GetTourCalendarInput) -> dict[str, Any]:

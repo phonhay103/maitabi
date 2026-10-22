@@ -26,6 +26,7 @@ from maitabi.core.inputs import (
     BusFilterBase,
     GetBusTourDetailInput,
     ListDistrictGroupsInput,
+    ListFilterMasterInput,
     ListFiltersInput,
     SearchBusToursInput,
 )
@@ -83,6 +84,24 @@ async def list_filters_service(input: ListFiltersInput) -> dict[str, Any]:
 async def list_district_groups_service(input: ListDistrictGroupsInput) -> dict[str, Any]:
     """Fetch district groups and tour counts for mountain bus tours."""
     return await get_json(f"{API_BASE}/district_group", params=_bus_params(input))
+
+
+async def list_filter_master_service(input: ListFilterMasterInput) -> dict[str, Any]:
+    """Fetch one cascading master list (style, bus sheet, return day, district).
+
+    Same data `list_filters` returns, but a single group at a time and a much
+    smaller payload; counts stay filter-aware.
+    """
+    data = await get_json(f"{API_BASE}/{input.kind}", params=_bus_params(input))
+    if "error" in data:
+        return data
+    raw = (data.get("pulldown_options") or {}).get(input.kind)
+    options = [
+        {"id": as_int(option.get("id")), "name": option.get("name"), "tour_count": as_int(option.get("tour_count"))}
+        for option in (raw if isinstance(raw, list) else [])
+        if isinstance(option, dict)
+    ]
+    return {"kind": input.kind, "options": options, "query": query_of(input)}
 
 
 async def search_tours_service(input: SearchBusToursInput) -> dict[str, Any]:

@@ -22,6 +22,7 @@ from maitabi.core.inputs import (
     GetGeneralTourDetailInput,
     GetTourCalendarInput,
     ListDistrictGroupsInput,
+    ListFilterMasterInput,
     ListFiltersInput,
     SearchBusToursInput,
     SearchGeneralToursInput,
@@ -29,14 +30,12 @@ from maitabi.core.inputs import (
 from maitabi.services.bus import (
     get_tour_detail_service,
     list_district_groups_service,
+    list_filter_master_service,
     list_filters_service,
     search_tours_service,
 )
-from maitabi.services.general import (
-    get_general_tour_detail_service,
-    get_tour_calendar_service,
-    search_general_tours_service,
-)
+from maitabi.services.general import get_tour_calendar_service, search_general_tours_service
+from maitabi.services.general_detail import get_general_tour_detail_service
 
 
 @dataclass(frozen=True)
@@ -133,14 +132,31 @@ ACTIONS: tuple[Action, ...] = (
         command="get-tour-detail",
         input_model=GetGeneralTourDetailInput,
         service=get_general_tour_detail_service,
-        endpoint="GET /tour_detail",
+        endpoint="GET /detail.php?courseNo={course_no}",
         doc=(
-            "Fetch complete details, itinerary, pricing, and booking information for a general tour "
-            "on www.maitabi.jp.\n\n"
-            "Returns a JSON string containing tour itinerary, meal conditions, price matrix, lodging, "
-            "and booking links."
+            "Fetch the full page for one general tour on www.maitabi.jp: day-by-day itinerary, travel "
+            "conditions (minimum participants, tour conductor, meals), every departure date with price "
+            "and booking status, the full description, and the booking link.\n\n"
+            "www.maitabi.jp publishes no detail API, so this reads the rendered detail page: the tour "
+            "record comes from the page's embedded JSON and the three tables from its markup."
         ),
         help="Fetch general tour detail by courseNo",
+    ),
+    Action(
+        domain="bus",
+        tool="bus_list_filter_master",
+        command="list-filter-master",
+        input_model=ListFilterMasterInput,
+        service=list_filter_master_service,
+        endpoint="GET /{kind}",
+        doc=(
+            "Fetch one cascading master list for mountain bus tours: tour styles, bus seat types, return-day "
+            "options, or area/district groups.\n\n"
+            "Same data as bus_list_filters but one group at a time, with a much smaller payload. Counts stay "
+            "filter-aware: they reflect the other filters passed in, so ids with tour_count 0 are unavailable "
+            "for that combination."
+        ),
+        help="Fetch one master list (style, bus_sheet, return_day, district)",
     ),
     Action(
         domain="general",

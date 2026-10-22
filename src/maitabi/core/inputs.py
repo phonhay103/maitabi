@@ -6,7 +6,7 @@ tools and the CLI parser are both generated from these models (see
 in this file updates every interface at once.
 """
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
@@ -117,6 +117,25 @@ class ListDistrictGroupsInput(BusFilterBase):
     """Input schema for fetching mountain area/district groups."""
 
     # Inherits every shared filter field unchanged.
+
+
+FilterMasterKind = Literal["style", "bus_sheet", "return_day", "district"]
+
+
+class ListFilterMasterInput(BusFilterBase):
+    """Input schema for fetching one cascading master list.
+
+    `api.bus.maitabi.jp` serves the same option groups that `tour_course`
+    aggregates, but one at a time and with a much smaller payload. Counts stay
+    filter-aware: they reflect the other filters passed here.
+    """
+
+    kind: Annotated[
+        FilterMasterKind,
+        Field(
+            description="Master list to fetch: 'style' (tour style), 'bus_sheet' (seat type), 'return_day' (return date), 'district' (area/district)",
+        ),
+    ]
 
 
 class SearchBusToursInput(BusFilterBase):

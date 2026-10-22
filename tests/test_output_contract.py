@@ -14,11 +14,13 @@ from httpx import Response
 from maitabi.core.errors import RATE_LIMIT_ERROR
 from maitabi.core.inputs import (
     GetBusTourDetailInput,
+    ListFilterMasterInput,
     SearchBusToursInput,
     SearchGeneralToursInput,
 )
 from maitabi.services.bus import (
     get_tour_detail_service,
+    list_filter_master_service,
     search_tours_service,
 )
 from maitabi.services.general import (
@@ -223,3 +225,38 @@ async def test_upstream_500_is_clear_error_not_exception():
     out = _load(await search_tours_service(SearchBusToursInput(month=9)))
     assert out["error"] == "Upstream service returned error: 500"
     assert "detail" in out
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_filter_master_returns_typed_options():
+    respx.get("https://api.bus.maitabi.jp/district").mock(
+        return_value=Response(
+            200,
+            json={
+                "pulldown_options": {
+                    "district": [
+                        {"id": 1, "name": "恵那山", "tour_count": 4},
+                        {"id": 2, "name": "両神山", "tour_count": "0"},
+                    ]
+                },
+                "param": {"departure": "1", "month": "11"},
+            },
+        )
+    )
+    out = _load(await list_filter_master_service(ListFilterMasterInput(kind="district", month=11)))
+
+    assert out["kind"] == "district"
+    assert out["options"] == [
+        {"id": 1, "name": "恵那山", "tour_count": 4},
+        {"id": 2, "name": "両神山", "tour_count": 0},
+    ]
+    assert out["query"] == {"departure": 1, "month": 11, "kind": "district"}
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_filter_master_passes_errors_through():
+    respx.get("https://api.bus.maitabi.jp/style").mock(return_value=Response(500, text="boom"))
+    out = _load(await list_filter_master_service(ListFilterMasterInput(kind="style")))
+    assert out["error"] == "Upstream service returned error: 500"

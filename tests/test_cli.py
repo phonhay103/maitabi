@@ -26,9 +26,17 @@ def test_bus_commands():
     assert _commands("bus") == {
         "list-filters",
         "list-district-groups",
+        "list-filter-master",
         "search-tours",
         "get-tour-detail",
     }
+
+
+def test_list_filter_master_requires_a_known_kind():
+    args = build_parser().parse_args(["bus", "list-filter-master", "--kind", "district", "--month", "11"])
+    assert args.kind == "district"
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["bus", "list-filter-master", "--kind", "nope"])
 
 
 def test_general_commands():

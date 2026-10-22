@@ -13,14 +13,12 @@ from maitabi.mcp.server import mcp
 from maitabi.services.bus import (
     get_tour_detail_service,
     list_district_groups_service,
+    list_filter_master_service,
     list_filters_service,
     search_tours_service,
 )
-from maitabi.services.general import (
-    get_general_tour_detail_service,
-    get_tour_calendar_service,
-    search_general_tours_service,
-)
+from maitabi.services.general import get_tour_calendar_service, search_general_tours_service
+from maitabi.services.general_detail import get_general_tour_detail_service
 
 # (domain, cli command) -> (mcp_tool, service callable)
 EXPECTED_ACTIONS = {
@@ -28,6 +26,7 @@ EXPECTED_ACTIONS = {
     ("bus", "list-district-groups"): ("bus_list_district_groups", list_district_groups_service),
     ("bus", "search-tours"): ("bus_search_tours", search_tours_service),
     ("bus", "get-tour-detail"): ("bus_get_tour_detail", get_tour_detail_service),
+    ("bus", "list-filter-master"): ("bus_list_filter_master", list_filter_master_service),
     ("general", "search-tours"): ("general_search_tours", search_general_tours_service),
     ("general", "get-tour-detail"): ("general_get_tour_detail", get_general_tour_detail_service),
     ("general", "get-calendar"): ("general_get_calendar", get_tour_calendar_service),
