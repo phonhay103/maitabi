@@ -7,18 +7,18 @@ description: Use the `maitabi` CLI to search mountain bus tours, general trekkin
 
 One command covers the whole site: `maitabi <bus|general> <command>`. Output is JSON on stdout. `maitabi mcp` starts the MCP server.
 
-## 1. Install
+## 1. Running it
+
+Never install anything — use what is already there:
 
 ```bash
-uvx maitabi --help                 # no install, always the published version
-uv tool install maitabi && maitabi --help
-pip install maitabi                # inside a virtualenv
-
-# Docker (CLI and MCP server share one image)
-docker pull phonhay103/maitabi
-docker run --rm phonhay103/maitabi --help                    # CLI
-docker run -i --rm phonhay103/maitabi mcp                    # MCP server, stdio
+command -v maitabi >/dev/null && maitabi --help   # already on PATH
+uvx maitabi --help                                # otherwise: runs the published version, no install
 ```
+
+All examples below are written as `maitabi ...`. If `maitabi` is not on PATH, prefix the same command with `uvx ` (`uvx maitabi bus search-tours ...`). Pick one form at the start of the task and keep it for the whole session.
+
+If neither works, say so and stop — do not install the package, and do not fall back to scraping the site; the `maitabi-bus-extractor` skill covers raw HTTP if the user asks for it.
 
 ## 2. Global flags
 
@@ -117,7 +117,7 @@ See `references/filter-mapping.md` for departure/area/style/return-day/seat/lodg
 
 ## 6. Troubleshooting
 
-- `maitabi: command not found` → `uv tool install maitabi`, or run `uvx maitabi ...`.
+- `maitabi: command not found` → run the same command as `uvx maitabi ...`; do not install it.
 - Empty `items` → widen filters (drop `--day`/`--area`/price caps) or check `--month` (backend requires month).
 - Network errors appear as `{"error": ..., "detail": ...}` JSON with exit code 1 — retry, don't change filters.
 - `{"error": "Rate limited by www.maitabi.jp (60 requests/min per IP)", ...}` → `general` commands are capped at 60 req/min per IP. Wait ~60s and retry manually, e.g. `sleep 60 && maitabi general get-calendar --year 2026 --month 11`. Large `--day` ranges fan out into parallel requests and hit the cap faster.
