@@ -13,7 +13,7 @@ Use the `maitabi` command-line tool. It shares the same core as the MCP server, 
 # PyPI (default distribution includes MCP + CLI)
 pip install maitabi-mcp-server
 # or isolated envs
-uvx maitabi --help
+uvx --from maitabi-mcp-server maitabi --help
 uv tool install maitabi-mcp-server && maitabi --help
 
 # Docker (image contains both entrypoints)
@@ -110,7 +110,7 @@ See `references/filter-mapping.md` for departure/area/style/return-day/seat/lodg
 
 ## 6. Troubleshooting
 
-- `maitabi: command not found` → reinstall (`pip install maitabi-mcp-server`) or use `uvx maitabi ...` / `python -m maitabi_mcp_server.cli ...`.
+- `maitabi: command not found` → reinstall (`pip install maitabi-mcp-server`) or use `uvx --from maitabi-mcp-server maitabi ...` / `python -m maitabi_mcp_server.cli ...`.
 - Empty `tour: []` → widen filters (drop `--day`/`--area`/price caps) or check `--month` (backend requires month).
 - Network errors appear as `{"error": ..., "detail": ...}` JSON — retry, don't change filters.
 - `{"error": "Rate limited by www.maitabi.jp (60 requests/min per IP)", ...}` → `search-general-tours` and `get-tour-calendar` are capped at 60 req/min per IP. Wait ~60s and retry manually, e.g. `sleep 60 && maitabi get-tour-calendar --year 2026 --month 8`. Large `--day` ranges fan out into parallel requests and hit the cap faster.
