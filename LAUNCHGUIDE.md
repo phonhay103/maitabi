@@ -47,4 +47,4 @@ Japan Alpine Trip Planning, Mountain Bus Departure Search, Mountain Lodge Packag
 maitabi, japan-alps, mountain-bus, trekking, hiking, travel, alpine, kamikochi, tateyama, hakuba, fuji, japan-travel, tour-search, fastmcp, mcp-server
 
 ## Documentation URL
-https://github.com/phonhay103/maitabi-mcp-server
+https://github.com/phonhay103/maitabi

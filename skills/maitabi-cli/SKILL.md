@@ -5,104 +5,88 @@ description: Use the `maitabi` CLI to search mountain bus tours, general trekkin
 
 # Maitabi CLI Skill
 
-Use the `maitabi` command-line tool. It shares the same core as the MCP server, so results match MCP tool outputs. Output is JSON on stdout.
+One command covers the whole site: `maitabi <bus|general> <command>`. Output is JSON on stdout. `maitabi mcp` starts the MCP server.
 
 ## 1. Install
 
 ```bash
-# PyPI (default distribution includes MCP + CLI)
-pip install maitabi-mcp-server
-# or isolated envs
-uvx --from maitabi-mcp-server maitabi --help
-uv tool install maitabi-mcp-server && maitabi --help
+uvx maitabi --help                 # no install, always the published version
+uv tool install maitabi && maitabi --help
+pip install maitabi                # inside a virtualenv
 
-# Docker (image contains both entrypoints)
-docker pull phonhay103/maitabi-mcp-server:latest
-docker run -i --rm phonhay103/maitabi-mcp-server:latest --help            # MCP entrypoint help
-docker run -i --rm --entrypoint maitabi phonhay103/maitabi-mcp-server:latest --help  # CLI help
+# Docker (CLI and MCP server share one image)
+docker pull phonhay103/maitabi
+docker run --rm phonhay103/maitabi --help                    # CLI
+docker run -i --rm phonhay103/maitabi mcp                    # MCP server, stdio
 ```
 
 ## 2. Global flags
 
-Every subcommand accepts:
+Every data subcommand accepts:
 
 | Flag | Effect |
 |------|--------|
 | `--pretty` | Pretty-print JSON (indent=2) |
 | `--output FILE` | Write JSON to FILE instead of stdout |
 
-## 3. Commands (7, mirror MCP tools)
+## 3. Commands
 
-### `list-filters` — bus filter options + tour counts
+### `maitabi bus` — mountain bus tours (`api.bus.maitabi.jp`)
 
 ```bash
-maitabi list-filters --departure 1 --month 8 --pretty
-maitabi list-filters --departure 1 --month 8 --day 10 --area 18
+maitabi bus list-filters --departure 1 --month 8 --pretty
+maitabi bus list-district-groups --departure 1 --month 8
+maitabi bus search-tours --departure 1 --month 11 --area 18 --page 1 --pretty
+maitabi bus search-tours --month 11 --day '14-16, 20' --max-price 20000 --require-available-seats
+maitabi bus search-tours --month 12 --style 6 --return-day 1 --bus-sheet 1 --keyword '立山'
+maitabi bus get-tour-detail --course-no 14241 --pretty
+maitabi bus get-tour-detail --course-no 14241,8518 --output details.json
 ```
 
-Flags: `--departure 1|2|3` (default 1), `--month 1-12`, `--day 'D|list|range'`, `--area ID`, `--style 1-7`, `--return-day 1-5`, `--bus-sheet 1-6`, `--stay1/2/3 ID`, `--course-cd CODE`, `--keyword TEXT`.
+Flags: `--departure 1|2|3` (default 1), `--month 1-12`, `--day 'D|list|range'`, `--area ID`, `--style 1-7`, `--return-day 1-5`, `--bus-sheet 1-6`, `--stay1/2/3 ID`, `--course-cd CODE`, `--keyword TEXT`, `--page N`, `--min-price`, `--max-price`, `--require-available-seats`.
 
-### `list-district-groups` — area groups + counts
-
-```bash
-maitabi list-district-groups --departure 1 --month 8 --pretty
-```
-
-Same filter flags as `list-filters`.
-
-### `search-tours` — search mountain bus tours
+### `maitabi general` — tours & calendar (`www.maitabi.jp`)
 
 ```bash
-maitabi search-tours --departure 1 --month 8 --area 18 --page 1 --pretty
-maitabi search-tours --departure 1 --month 8 --day '14-16, 20' --max-price 20000 --require-available-seats
-maitabi search-tours --departure 1 --month 8 --style 6 --return-day 1 --bus-sheet 1 --keyword '立山'
-```
-
-Extra flags: `--page N` (default 1), `--min-price JPY`, `--max-price JPY`, `--require-available-seats`.
-
-### `get-tour-detail` — bus tour detail by course_no
-
-```bash
-maitabi get-tour-detail --course-no 14241 --pretty
-maitabi get-tour-detail --course-no 14241,8518 --output details.json
-```
-
-### `search-general-tours` — general tours on www.maitabi.jp
-
-```bash
-maitabi search-general-tours --travel-type 1 --keyword '富士山' --year-month 2026-08 --pretty
-maitabi search-general-tours --travel-type 1 --day '14-16, 20' --list-order priceAsc --category-nos3 '13,15'
+maitabi general search-tours --travel-type 1 --keyword '富士山' --year-month 2026-11 --pretty
+maitabi general search-tours --travel-type 1 --day '14-16, 20' --list-order priceAsc --category-nos3 '13,15'
+maitabi general get-tour-detail --course-no 1723 --pretty
+maitabi general get-calendar --year 2026 --month 11 --travel-type 1
 ```
 
 Flags: `--travel-type 1-5` (default 1), `--keyword`, `--year-month YYYY-MM`, `--day`, `--page`, `--min-price`, `--max-price`, `--require-available-seats`, `--list-order startDateAsc|saikouStatus|yoyakuStatus|priceAsc|priceDesc`, `--category-nos1..5 'ID,ID'`.
 
-### `get-general-tour-detail` — general tour detail
+### `maitabi mcp` — MCP server
 
 ```bash
-maitabi get-general-tour-detail --course-no 1723 --pretty
-```
-
-### `get-tour-calendar` — monthly departure matrix
-
-```bash
-maitabi get-tour-calendar --year 2026 --month 8 --pretty
-maitabi get-tour-calendar --year 2026 --month 8 --travel-type 1
+maitabi mcp                                  # stdio (what MCP clients expect)
+maitabi mcp --transport streamable-http --port 8000
 ```
 
 ## 4. Output
 
-JSON on stdout, same shape as MCP tools:
+Search commands return one envelope:
 
 ```json
 {
-  "count": 23,
-  "page": "1",
-  "tour": [{ "course_no": 14241, "course_cd": "S104C21", "date": "2026年09月12日(土)", "title": "...", "price": "15,500円", "status": "受付中", "detail_url": "https://bus.maitabi.jp/detail.html?course_no=14241&year=2026&month=9" }],
-  "param": { "departure": "1", "page": "1", "month": "9" }
+  "count": 191,
+  "page": 1,
+  "items": [{ "course_no": 14241, "course_cd": "S104C21", "date": "2026年09月12日(土)", "title": "...", "price": "15,500円", "status": "受付中", "detail_url": "https://bus.maitabi.jp/detail.html?course_no=14241&year=2026&month=9" }],
+  "query": { "departure": 1, "month": 11, "page": 1 }
 }
 ```
 
-Pipe tips: `maitabi search-tours ... --output tours.json`, `maitabi search-tours ... | jq '.tour[] | {course_no, date, price, status}'`.
+- `count` is the upstream total for the query, before client-side price/availability filters.
+- `count`/`page` are `null` when upstream does not report them; `items` is always a list.
+- Batch `get-tour-detail` returns the same envelope with `page: null`; a single course returns the detail object.
+- `status` is domain-native: Japanese string for bus, numeric code for general (1/2 bookable, 3 closed).
+
+Pipe tips:
+
+```bash
+maitabi bus search-tours --month 11 | jq '.items[] | {course_no, date, price, status}'
+maitabi general search-tours --travel-type 1 | jq '.count, (.items | length)'
+```
 
 ## 5. Filter ID reference
 
@@ -110,7 +94,7 @@ See `references/filter-mapping.md` for departure/area/style/return-day/seat/lodg
 
 ## 6. Troubleshooting
 
-- `maitabi: command not found` → reinstall (`pip install maitabi-mcp-server`) or use `uvx --from maitabi-mcp-server maitabi ...` / `python -m maitabi_mcp_server.cli ...`.
-- Empty `tour: []` → widen filters (drop `--day`/`--area`/price caps) or check `--month` (backend requires month).
-- Network errors appear as `{"error": ..., "detail": ...}` JSON — retry, don't change filters.
-- `{"error": "Rate limited by www.maitabi.jp (60 requests/min per IP)", ...}` → `search-general-tours` and `get-tour-calendar` are capped at 60 req/min per IP. Wait ~60s and retry manually, e.g. `sleep 60 && maitabi get-tour-calendar --year 2026 --month 8`. Large `--day` ranges fan out into parallel requests and hit the cap faster.
+- `maitabi: command not found` → `uv tool install maitabi`, or run `uvx maitabi ...`.
+- Empty `items` → widen filters (drop `--day`/`--area`/price caps) or check `--month` (backend requires month).
+- Network errors appear as `{"error": ..., "detail": ...}` JSON with exit code 1 — retry, don't change filters.
+- `{"error": "Rate limited by www.maitabi.jp (60 requests/min per IP)", ...}` → `general` commands are capped at 60 req/min per IP. Wait ~60s and retry manually, e.g. `sleep 60 && maitabi general get-calendar --year 2026 --month 11`. Large `--day` ranges fan out into parallel requests and hit the cap faster.

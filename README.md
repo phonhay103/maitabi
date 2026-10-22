@@ -1,211 +1,182 @@
-# Maitabi MCP Server (Python)
+# Maitabi (Python)
 
-An MCP (Model Context Protocol) server written in Python using FastMCP for searching and extracting mountain bus tour, alpine trekking, and general tour information from **Maitabi (まいたび - 毎日新聞旅行 / 毎日あるぺん号)** (`www.maitabi.jp`, `bus.maitabi.jp`, & `api.bus.maitabi.jp`).
+Search **Maitabi (まいたび — 毎日新聞旅行 / 毎日あるぺん号)** from one package: mountain bus tours (`bus.maitabi.jp`), general travel and trekking tours, and departure calendars (`www.maitabi.jp`). It ships as a CLI, an MCP server, and three agent skills — all driven by the same seven actions.
 
-Docker Hub Repository: [phonhay103/maitabi-mcp-server](https://hub.docker.com/r/phonhay103/maitabi-mcp-server)
+> Unofficial client. Not affiliated with 毎日新聞旅行.
 
-## Tools Provided
+| Interface | Use it when | Start with |
+|---|---|---|
+| **CLI** | you want commands, scripts, or JSON for `jq` | `uvx maitabi --help` |
+| **MCP server** | you want the tools inside an MCP client | `uvx maitabi mcp` |
+| **Skills** | you want an agent to know the workflows | `npx skills add phonhay103/maitabi -g` |
 
-Full parameter reference (MCP args, CLI flags, defaults, endpoints): **[`docs/TOOL_CATALOG.md`](docs/TOOL_CATALOG.md)** (generated from code — always current).
+## Quick start (CLI)
 
-### Mountain Bus Tours (毎日あるぺん号 - `bus.maitabi.jp`)
-- `list_filters`: Fetch available filter options, departure areas, tour styles, mountain lodges, and tour counts for mountain bus tours.
-- `list_district_groups`: Fetch area/district groups and tour counts for mountain bus tours.
-- `search_tours`: Search mountain bus tours with full filter support (departure, month, day, area, style, return date, bus seat, lodges, keyword, course code).
-- `get_tour_detail`: Fetch complete bus tour details, schedules, comments, and pricing by `course_no`.
-
-### General Travel & Trekking Tours (毎日新聞旅行 - `www.maitabi.jp`)
-- `search_general_tours`: Search general Mainichi Travel tours across categories (`travel_type`: 1=Domestic Mountain Climbing/Trekking, 2=Domestic Travel/Hiking, 3=Mountain Bus, 4=Overseas Mountain Climbing/Trekking, 5=Overseas Travel) with keyword, date, and pagination filters.
-- `get_general_tour_detail`: Fetch complete tour details, itinerary, meal condition, guide info, points of interest, and booking links for general tours by `courseNo`.
-- `get_tour_calendar`: Fetch monthly departure schedule calendar and tour matrix on `www.maitabi.jp` for a given year and month.
-
----
-
-## 1. MCP Server Usage
-
-The MCP server is a runtime exposing 7 tools over `stdio`, `SSE`, or Streamable HTTP. This section is the canonical setup reference (entrypoints, transports, client config). Agent tool-call workflows live in the `maitabi-mcp` skill, which assumes the server here is already connected.
-
-### Running the Server
-
-#### Option A: Zero-setup via `uvx`
 ```bash
-# From PyPI (once published)
-uvx maitabi-mcp-server
+# Mountain bus tours
+maitabi bus search-tours --month 11 --area 18 --pretty
 
-# Directly from Git repository
-uvx --from git+https://github.com/phonhay103/maitabi-mcp-server.git maitabi-mcp-server
+# General trekking tours
+maitabi general search-tours --travel-type 1 --keyword '富士山' --year-month 2026-11
+
+# One tour in full
+maitabi bus get-tour-detail --course-no 14241
+
+# Monthly departure matrix
+maitabi general get-calendar --year 2026 --month 11 --travel-type 1
 ```
 
-#### Option B: Via Docker Image
-```bash
-docker pull phonhay103/maitabi-mcp-server:latest
-docker run -i --rm phonhay103/maitabi-mcp-server:latest
+Install permanently with `uv tool install maitabi` or `pip install maitabi`. Every data command accepts `--pretty` and `--output FILE`.
+
+## Output contract
+
+Search commands return one envelope; every item carries a `detail_url`:
+
+```json
+{
+  "count": 191,
+  "page": 1,
+  "items": [
+    {
+      "course_no": 14241,
+      "course_cd": "S104C21",
+      "date": "2026年09月12日(土)",
+      "title": "立山室堂ライン往復ツアー",
+      "price": "15,500円",
+      "status": "受付中",
+      "detail_url": "https://bus.maitabi.jp/detail.html?course_no=14241&year=2026&month=9"
+    }
+  ],
+  "query": { "departure": 1, "month": 11, "page": 1 }
+}
 ```
 
-### Configuration for MCP Clients (setup reference)
+- `count` is the upstream total for the query, **before** the client-side price/availability filters; `items` can be shorter on the current page.
+- `count` and `page` are `null` when upstream does not report them; `items` is always a list.
+- Batch detail (`--course-no 14241,8518`) returns the same envelope with `page: null`; a single course returns the detail object itself.
+- Filter options, district groups, and the calendar return their own objects — a list of one would add indexing without information.
+- `status` is domain-native: a Japanese string for bus, a numeric code for general (1/2 bookable, 3 closed).
+- Errors are always `{"error": ..., "detail": ...}`, never a partial envelope.
 
-Add the following to your MCP client settings. Pick the key format your client expects:
+The contract only grows: new fields appear, existing ones are never renamed or removed within a major version.
 
-#### 1. `mcpServers` key format (stdio)
+## Tools (7)
 
-##### Via `uvx` (Recommended):
+Full parameter reference (MCP args, CLI flags, defaults, endpoints): **[`docs/TOOL_CATALOG.md`](docs/TOOL_CATALOG.md)** — generated from the code, so it cannot drift.
+
+### Mountain bus (`api.bus.maitabi.jp`)
+
+| MCP tool | CLI | What it does |
+|---|---|---|
+| `bus_list_filters` | `maitabi bus list-filters` | filter options, lodges, tour counts (cascading) |
+| `bus_list_district_groups` | `maitabi bus list-district-groups` | area/district groups + counts |
+| `bus_search_tours` | `maitabi bus search-tours` | search tours and lodge packages |
+| `bus_get_tour_detail` | `maitabi bus get-tour-detail` | full itinerary by `course_no` (single or batch) |
+
+### General tours & calendar (`www.maitabi.jp`)
+
+| MCP tool | CLI | What it does |
+|---|---|---|
+| `general_search_tours` | `maitabi general search-tours` | search by `travel_type` 1-5, keyword, dates, categories |
+| `general_get_tour_detail` | `maitabi general get-tour-detail` | itinerary, meals, guide, booking links |
+| `general_get_calendar` | `maitabi general get-calendar` | monthly departure matrix |
+
+## MCP server
+
+One executable, one subcommand. `mcp` speaks `stdio` by default, or `sse` / `streamable-http`:
+
+```bash
+uvx maitabi mcp                                  # stdio — what MCP clients expect
+uvx maitabi mcp --transport streamable-http --port 8000
+docker run -i --rm phonhay103/maitabi mcp        # same thing in a container
+```
+
+Client configuration (`mcpServers` key):
+
 ```json
 {
   "mcpServers": {
-    "maitabi-pypi": {
+    "maitabi": {
       "command": "uvx",
-      "args": ["maitabi-mcp-server"]
+      "args": ["maitabi", "mcp"]
     }
   }
 }
 ```
 
-##### Via Docker:
+Docker variant:
+
 ```json
 {
   "mcpServers": {
     "maitabi": {
       "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "phonhay103/maitabi-mcp-server:latest"
-      ]
+      "args": ["run", "-i", "--rm", "phonhay103/maitabi:latest", "mcp"]
     }
   }
 }
 ```
 
-#### 2. `servers` key format (requires `"type": "stdio"`)
-
-```json
-{
-    "servers": {
-        "maitabi": {
-            "command": "docker",
-            "args": [
-                "run",
-                "-i",
-                "--rm",
-                "phonhay103/maitabi-mcp-server:latest"
-            ],
-            "type": "stdio"
-        },
-        "maitabi-pypi": {
-            "type": "stdio",
-            "command": "uvx",
-            "args": [
-                "maitabi-mcp-server"
-            ]
-        }
-    },
-    "inputs": []
-}
-```
-
-### Agent Skills ([vercel-labs/skills](https://github.com/vercel-labs/skills))
-
-Install and use Agent Skills from this repository via `npx skills`:
-
-```bash
-# Install to current project
-npx skills add phonhay103/maitabi-mcp-server
-
-# Install globally
-npx skills add phonhay103/maitabi-mcp-server -g
-
-# List skills / Use without installing
-npx skills add phonhay103/maitabi-mcp-server --list
-npx skills use phonhay103/maitabi-mcp-server
-```
-
-**Available Skills:**
-- **`maitabi-bus-extractor`** (`skills/maitabi-bus-extractor/SKILL.md`): Raw HTTP/curl extraction for mountain bus (`bus.maitabi.jp`) and general trekking tours (`www.maitabi.jp`). Standalone — no MCP or CLI needed.
-- **`maitabi-cli`** (`skills/maitabi-cli/SKILL.md`): Terminal `maitabi ...` commands with JSON output. Same core as MCP.
-- **`maitabi-mcp`** (`skills/maitabi-mcp/SKILL.md`): How to call the already-connected MCP tools (`search_tours`, `get_tour_detail`, ...) — tool choice, flows, args, output. Assumes the server from §1 is already configured; no install steps here.
-
----
-
-## CLI Usage (Optional — Default Distribution Is MCP)
-
-The `maitabi` CLI shares the same core services as the MCP server and prints identical JSON to stdout.
-
-```bash
-# Via uvx / pip
-uvx maitabi --help
-pip install maitabi-mcp-server && maitabi --help
-
-# Via Docker (image contains both entrypoints)
-docker run -i --rm --entrypoint maitabi phonhay103/maitabi-mcp-server:latest --help
-
-# Examples
-maitabi search-tours --departure 1 --month 8 --area 18 --page 1 --pretty
-maitabi search-general-tours --travel-type 1 --keyword '富士山' --year-month 2026-08 --pretty
-maitabi get-tour-detail --course-no 14241 --pretty
-maitabi get-tour-calendar --year 2026 --month 8 --pretty
-```
-
-Every subcommand accepts `--pretty` (indented JSON) and `--output FILE`. See `make cli-help` for the full list, or [`docs/TOOL_CATALOG.md`](docs/TOOL_CATALOG.md) for all flags.
-
-### Exit codes
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Upstream/network error (result payload contains `error`, incl. rate limiting) |
-| 2 | Input error (bad flag value or failed validation) |
-
-Scripts can branch on these, e.g. `maitabi search-tours ... || echo "upstream issue" >&2`.
-
-### Rate limits
-
-| Host | Limit | Applies to |
-|------|-------|------------|
-| `www.maitabi.jp` | 60 requests/min per IP | General tours + calendar (MCP tools, CLI, or curl alike) |
-| `api.bus.maitabi.jp` | None observed at normal usage | Mountain bus tours |
-
-When the cap is hit, wrappers return `{"error": "Rate limited by www.maitabi.jp ...", "retry_hint": "wait ~60s and retry manually"}` instead of results. There is no auto-retry — wait and re-run. Narrow `day` ranges help, since each day fans out into a parallel request.
-
----
-
-## 2. Development
-
-### Makefile Commands
-
-```bash
-make help           # Show available Makefile targets
-make install        # Install dependencies using uv
-make dev            # Run the MCP server locally over stdio
-make dev-http       # Run the MCP server locally over Streamable HTTP (Port 8000)
-make test           # Run the offline test suite (pytest, no network)
-make smoke          # LIVE smoke check against the production API
-make catalog        # Regenerate docs/TOOL_CATALOG.md + skill reference copies
-make catalog-check  # Fail if generated files are stale (what CI runs)
-make docker-build   # Build 2-stage Docker image (Python 3.14)
-make build          # Build Python package wheel & sdist
-```
-
-### Architecture (for contributors)
-
-See [`AGENTS.md`](AGENTS.md). In short: parameters live once in `core/inputs.py`, services in `services/`, and both the MCP tools and the CLI parser are generated from `registry.py`; the tool catalog is generated from that by `scripts/gen_catalog.py`, so the interfaces cannot drift.
-
-### Local Development Client Configuration
-
-To test a local checkout with an MCP client:
+Local checkout, no install:
 
 ```json
 {
   "mcpServers": {
     "maitabi": {
       "command": "uv",
-      "args": [
-        "run",
-        "--directory",
-        "/path/to/maitabi-mcp-server",
-        "maitabi-mcp-server"
-      ]
+      "args": ["run", "--directory", "/path/to/maitabi", "maitabi", "mcp"]
     }
   }
 }
 ```
+
+Tools are named `<domain>_<command>`: `bus_*` reads `api.bus.maitabi.jp`, `general_*` reads `www.maitabi.jp`.
+
+## Agent skills
+
+```bash
+npx skills add phonhay103/maitabi -g     # all three
+npx skills add phonhay103/maitabi --list # inspect first
+```
+
+- **`maitabi-cli`** — terminal workflows and JSON piping.
+- **`maitabi-mcp`** — how to call the already-connected tools: which tool, in what order, how to read results.
+- **`maitabi-bus-extractor`** — raw HTTP/curl for both hosts, standalone. No CLI, no MCP.
+
+## Rate limits
+
+| Host | Limit | Applies to |
+|---|---|---|
+| `www.maitabi.jp` | 60 requests/min per IP | general tours + calendar |
+| `api.bus.maitabi.jp` | none observed at normal usage | mountain bus tours |
+
+When the cap is hit, the result is `{"error": "Rate limited by www.maitabi.jp ...", "retry_hint": "wait ~60s and retry manually"}`. There is no auto-retry. Narrow `--day` ranges help, since each day fans out into a parallel request (bounded at 5).
+
+## Exit codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Upstream/network error (payload contains `error`, incl. rate limiting) |
+| 2 | Input error (bad flag value or failed validation) |
+
+## Development
+
+```bash
+make install        # uv sync
+make dev            # MCP server over stdio
+make test           # offline suite (no network)
+make smoke          # live check against the production API
+make catalog        # regenerate docs/TOOL_CATALOG.md + skill reference copies
+make catalog-check  # what CI runs — fails on stale generated files
+make docker-build   # 2-stage image (Python 3.14)
+make build          # wheel + sdist
+```
+
+Architecture, in one paragraph: parameters live once in `core/inputs.py`; endpoint logic lives in `services/`; `registry.py` declares one `Action` per capability (domain, MCP tool name, CLI command, input model, service, endpoint, docs); both adapters and the catalog are generated from that table, so the CLI, the MCP schema, and the documentation cannot disagree. See [`AGENTS.md`](AGENTS.md).
+
+## Links
+
+- PyPI: <https://pypi.org/project/maitabi/>
+- Docker Hub: <https://hub.docker.com/r/phonhay103/maitabi>
+- Source: <https://github.com/phonhay103/maitabi>

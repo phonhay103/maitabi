@@ -14,7 +14,7 @@ jobs:
 
     environment:
       name: dockerhub
-      url: https://hub.docker.com/r/phonhay103/maitabi-mcp-server
+      url: https://hub.docker.com/r/phonhay103/maitabi
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/maitabi-mcp-server
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/maitabi
           tags: |
             type=raw,value=latest
             type=semver,pattern={{version}}
@@ -59,6 +59,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: ${{ secrets.DOCKERHUB_USERNAME }}/maitabi-mcp-server
-          short-description: "Maitabi MCP server in Python for mountain bus and tour info."
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/maitabi
+          short-description: "Maitabi CLI + MCP server: bus tours, trekking tours, calendars (unofficial)."
           readme-filepath: ./README.md
