@@ -117,10 +117,7 @@ def render_catalog() -> str:
                 # Escape the union pipe or it would split the table cell.
                 type_text = f"`{_annotation_text(info.annotation)}`".replace("|", "\\|")
             description = (info.description or "").replace("|", "\\|")
-            lines.append(
-                f"| `{name}` | `{plan.flag}` | {type_text} | {_default_text(info)} "
-                f"| {description} |"
-            )
+            lines.append(f"| `{name}` | `{plan.flag}` | {type_text} | {_default_text(info)} | {description} |")
         lines.append("")
 
     lines += [
@@ -148,15 +145,15 @@ def collect_outputs() -> dict[Path, str]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--check", action="store_true",
+        "--check",
+        action="store_true",
         help="Verify committed outputs match the sources (exit 1 when stale)",
     )
     args = parser.parse_args(argv)
 
     outputs = collect_outputs()
     stale = [
-        path for path, content in outputs.items()
-        if not path.exists() or path.read_text(encoding="utf-8") != content
+        path for path, content in outputs.items() if not path.exists() or path.read_text(encoding="utf-8") != content
     ]
 
     if args.check:

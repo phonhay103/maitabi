@@ -11,8 +11,9 @@ Adapters (mcp/*, cli/*) import this module; it never imports them, so the
 CLI stays importable without fastmcp installed.
 """
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Awaitable, Callable
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -45,7 +46,7 @@ class Action:
     tool: str  # MCP tool name (snake_case)
     command: str  # CLI subcommand (kebab_case)
     input_model: type[BaseModel]  # parameter source of truth
-    service: Callable[[BaseModel], Awaitable[dict]]  # async core function
+    service: Callable[[Any], Awaitable[dict[str, Any]]]  # async core function
     endpoint: str  # upstream endpoint (catalog/documentation)
     doc: str  # MCP tool description (verbatim wire text)
     help: str  # CLI subcommand help (one line)

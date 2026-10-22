@@ -4,12 +4,12 @@ Exit codes: 0 OK · 1 upstream/network error · 2 input error
 (argparse rejects bad flags with 2 as well).
 """
 
-from maitabi_mcp_server.cli.commands import EXIT_INPUT_ERROR, EXIT_OK, run_action
+from maitabi_mcp_server.cli.commands import EXIT_OK, run_action
 from maitabi_mcp_server.cli.parser import build_parser
 from maitabi_mcp_server.registry import ACTION_BY_COMMAND
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     if not args.command:

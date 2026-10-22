@@ -19,8 +19,20 @@ def test_all_seven_subcommands_exist():
 
 def test_search_tours_flags():
     args = build_parser().parse_args(
-        ["search-tours", "--departure", "1", "--month", "8", "--area", "18",
-         "--day", "14-16, 20", "--max-price", "20000", "--require-available-seats"]
+        [
+            "search-tours",
+            "--departure",
+            "1",
+            "--month",
+            "8",
+            "--area",
+            "18",
+            "--day",
+            "14-16, 20",
+            "--max-price",
+            "20000",
+            "--require-available-seats",
+        ]
     )
     assert args.departure == 1
     assert args.month == 8
@@ -50,8 +62,17 @@ def test_get_tour_detail_requires_course_no():
 
 def test_general_tours_category_flags():
     args = build_parser().parse_args(
-        ["search-general-tours", "--travel-type", "1", "--year-month", "2026-08",
-         "--category-nos3", "13,15", "--list-order", "priceAsc"]
+        [
+            "search-general-tours",
+            "--travel-type",
+            "1",
+            "--year-month",
+            "2026-08",
+            "--category-nos3",
+            "13,15",
+            "--list-order",
+            "priceAsc",
+        ]
     )
     assert args.travel_type == 1
     assert args.year_month == "2026-08"

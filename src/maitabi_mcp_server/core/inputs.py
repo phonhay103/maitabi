@@ -6,7 +6,7 @@ tools and the CLI parser are both generated from these models (see
 in this file updates every interface at once.
 """
 
-from typing import Annotated, Optional
+from typing import Annotated
 
 from pydantic import BaseModel, Field
 
@@ -30,7 +30,7 @@ class BusFilterBase(BaseModel):
         ),
     ]
     month: Annotated[
-        Optional[int],
+        int | None,
         Field(
             default=None,
             ge=1,
@@ -39,11 +39,11 @@ class BusFilterBase(BaseModel):
         ),
     ]
     day: Annotated[
-        Optional[int],
+        int | None,
         Field(default=None, ge=1, le=31, description="Departure day (1-31)"),
     ] = None
     area: Annotated[
-        Optional[int],
+        int | None,
         Field(
             default=None,
             ge=0,
@@ -51,28 +51,28 @@ class BusFilterBase(BaseModel):
         ),
     ] = None
     style: Annotated[
-        Optional[TourStyle],
+        TourStyle | None,
         Field(
             default=None,
             description="Tour style: 1=Round-trip bus, 2=Outbound bus, 3=Inbound bus, 4=Round-trip lodge, 5=Outbound lodge, 6=Overnight day-trip, 7=Taxi plan",
         ),
     ] = None
     return_day: Annotated[
-        Optional[ReturnDayOption],
+        ReturnDayOption | None,
         Field(
             default=None,
             description="Return date option: 1=1 day after departure, 2=2 days after, 3=3 days after, 4=4 days after, 5=5 days after",
         ),
     ] = None
     bus_sheet: Annotated[
-        Optional[BusSeatType],
+        BusSeatType | None,
         Field(
             default=None,
             description="Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double seat, 6=Taxi",
         ),
     ] = None
     stay1: Annotated[
-        Optional[int],
+        int | None,
         Field(
             default=None,
             ge=1,
@@ -80,15 +80,15 @@ class BusFilterBase(BaseModel):
         ),
     ] = None
     stay2: Annotated[
-        Optional[int],
+        int | None,
         Field(default=None, ge=1, description="Mountain lodge ID for night 2"),
     ] = None
     stay3: Annotated[
-        Optional[int],
+        int | None,
         Field(default=None, ge=1, description="Mountain lodge ID for night 3"),
     ] = None
     course_cd: Annotated[
-        Optional[str],
+        str | None,
         Field(
             default=None,
             min_length=1,
@@ -97,7 +97,7 @@ class BusFilterBase(BaseModel):
         ),
     ] = None
     keyword: Annotated[
-        Optional[str],
+        str | None,
         Field(
             default=None,
             min_length=1,
@@ -125,26 +125,27 @@ class SearchBusToursInput(BusFilterBase):
     # month omits the "defaults to current month" note: the search endpoint
     # passes the month through untouched instead of substituting it.
     month: Annotated[
-        Optional[int],
+        int | None,
         Field(default=None, ge=1, le=12, description="Departure month (1-12)"),
     ]
-    # day accepts int / list / range string; only search fans out per day.
-    day: Annotated[
-        Optional[int | list[int] | str],
+    # day accepts int / list / range string; only search fans out per day, so
+    # widening the inherited int-only field is deliberate.
+    day: Annotated[  # ty: ignore[invalid-attribute-override]
+        int | list[int] | str | None,
         Field(
             default=None,
             description="Departure day (1-31). Can be a single int, a list of ints, or a string range (e.g., '14-16, 20').",
         ),
     ] = None
     min_price: Annotated[
-        Optional[int],
+        int | None,
         Field(
             default=None,
             description="Minimum price in JPY (e.g., 10000). Filters the results before returning.",
         ),
     ] = None
     max_price: Annotated[
-        Optional[int],
+        int | None,
         Field(
             default=None,
             description="Maximum price in JPY (e.g., 20000). Filters the results before returning.",
@@ -179,7 +180,7 @@ class SearchGeneralToursInput(BaseModel):
         ),
     ]
     keyword: Annotated[
-        Optional[str],
+        str | None,
         Field(
             default=None,
             min_length=1,
@@ -188,7 +189,7 @@ class SearchGeneralToursInput(BaseModel):
         ),
     ] = None
     year_month: Annotated[
-        Optional[str],
+        str | None,
         Field(
             default=None,
             pattern=r"^\d{4}-(?:0[1-9]|1[0-2])$",
@@ -196,7 +197,7 @@ class SearchGeneralToursInput(BaseModel):
         ),
     ] = None
     day: Annotated[
-        Optional[int | list[int] | str],
+        int | list[int] | str | None,
         Field(
             default=None,
             description="Departure day of month (1-31). Can be a single int, a list of ints, or a string range (e.g., '14-16, 20').",
@@ -204,14 +205,14 @@ class SearchGeneralToursInput(BaseModel):
     ] = None
     page: Annotated[int, Field(default=1, ge=1, description="Page number (1-based)")] = 1
     min_price: Annotated[
-        Optional[int],
+        int | None,
         Field(
             default=None,
             description="Minimum price in JPY (e.g., 10000). Filters the results before returning.",
         ),
     ] = None
     max_price: Annotated[
-        Optional[int],
+        int | None,
         Field(
             default=None,
             description="Maximum price in JPY (e.g., 50000). Filters the results before returning.",
@@ -222,42 +223,42 @@ class SearchGeneralToursInput(BaseModel):
         Field(default=False, description="If True, filters out full/closed tours (満席, 受付終了)."),
     ] = False
     list_order: Annotated[
-        Optional[str],
+        str | None,
         Field(
             default=None,
             description="Sort order: 'startDateAsc' (departure earliest), 'saikouStatus' (departure status), 'yoyakuStatus' (availability), 'priceAsc' (price low to high), 'priceDesc' (price high to low)",
         ),
     ] = None
     category_nos1: Annotated[
-        Optional[list[int]],
+        list[int] | None,
         Field(
             default=None,
             description="Subcategory Nos for Style/Duration (e.g. [36] for Day trip, [259] for Overnight)",
         ),
     ] = None
     category_nos2: Annotated[
-        Optional[list[int]],
+        list[int] | None,
         Field(
             default=None,
             description="Subcategory Nos for Difficulty/Shoes (e.g. [363] for Grade 1 / Introduction)",
         ),
     ] = None
     category_nos3: Annotated[
-        Optional[list[int]],
+        list[int] | None,
         Field(
             default=None,
             description="Subcategory Nos for Departure Region (e.g. [13] for Kanto, [15] for Tokai)",
         ),
     ] = None
     category_nos4: Annotated[
-        Optional[list[int]],
+        list[int] | None,
         Field(
             default=None,
             description="Subcategory Nos for Themes/Tours",
         ),
     ] = None
     category_nos5: Annotated[
-        Optional[list[int]],
+        list[int] | None,
         Field(
             default=None,
             description="Subcategory Nos for Guides",
@@ -288,7 +289,7 @@ class GetTourCalendarInput(BaseModel):
         Field(ge=1, le=12, description="Month (1-12)"),
     ]
     travel_type: Annotated[
-        Optional[TravelType],
+        TravelType | None,
         Field(
             default=None,
             description="Optional category ID filter: 1=Domestic Mountain, 2=Domestic Travel, 3=Mountain Bus, 4=Overseas Mountain, 5=Overseas Travel",

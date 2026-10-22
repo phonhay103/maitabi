@@ -22,9 +22,7 @@ def test_success_returns_0(capsys):
 
 @respx.mock
 def test_upstream_500_returns_1(capsys):
-    respx.get("https://api.bus.maitabi.jp/tour_search").mock(
-        return_value=Response(500, text="boom")
-    )
+    respx.get("https://api.bus.maitabi.jp/tour_search").mock(return_value=Response(500, text="boom"))
     assert main(["search-tours", "--month", "9"]) == 1
     assert "Upstream service returned error: 500" in capsys.readouterr().out
 

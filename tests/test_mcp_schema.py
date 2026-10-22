@@ -32,9 +32,7 @@ def test_mcp_schema_matches_snapshot():
     live = _live_schema()
     expected = json.loads(FIXTURE.read_text(encoding="utf-8"))
 
-    assert sorted(live) == sorted(expected), (
-        f"tool set changed: {sorted(set(live) ^ set(expected))}"
-    )
+    assert sorted(live) == sorted(expected), f"tool set changed: {sorted(set(live) ^ set(expected))}"
     for name, exp in sorted(expected.items()):
         assert live[name]["parameters"] == exp["parameters"], f"schema drift in {name}"
         assert live[name]["description"] == exp["description"], f"doc drift in {name}"

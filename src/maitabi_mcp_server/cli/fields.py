@@ -5,7 +5,6 @@ go through `plan_field`, so a field's flag type and its coercion can never
 drift apart. Must NOT import fastmcp/mcp/server/mcp.
 """
 
-import argparse
 import types
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -29,11 +28,11 @@ class FieldPlan:
     default: object
     arg_type: type | None  # None when store_true
     store_true: bool
-    choices: list | None
+    choices: list[object] | None
     coerce: Callable[[str], object] | None  # applied to string input, if any
 
 
-def annotation_members(annotation) -> list:
+def annotation_members(annotation: object) -> list[object]:
     """Flatten a (possibly Optional/union) annotation into its members."""
     if get_origin(annotation) in (Union, types.UnionType):
         return list(get_args(annotation))
@@ -52,7 +51,7 @@ def _parse_id_list(raw: str) -> list[int] | None:
     return [int(p.strip()) for p in raw.split(",") if p.strip()]
 
 
-def _enum_of(members: list) -> type[IntEnum] | None:
+def _enum_of(members: list[object]) -> type[IntEnum] | None:
     for member in members:
         if get_origin(member) is None and isinstance(member, type):
             try:
@@ -88,8 +87,14 @@ def plan_field(name: str, info: FieldInfo) -> FieldPlan:
         if isinstance(default, IntEnum):
             default = int(default)
         return FieldPlan(
-            flag, metavar, required, default, int, False,
-            [member.value for member in enum_cls], None,
+            flag,
+            metavar,
+            required,
+            default,
+            int,
+            False,
+            [member.value for member in enum_cls],
+            None,
         )
 
     if all(m is int for m in members):

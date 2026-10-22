@@ -4,6 +4,8 @@ Same layering as `services/bus.py`: Input model → query params → GET →
 post-processing, returning plain dicts.
 """
 
+from typing import Any
+
 from maitabi_mcp_server.config import API_BASE, MAIN_BASE
 from maitabi_mcp_server.core.days import parse_days
 from maitabi_mcp_server.core.errors import RATE_LIMIT_ERROR
@@ -22,17 +24,17 @@ from maitabi_mcp_server.core.inputs import (
 from maitabi_mcp_server.services.http import gather_limited, get_json
 
 
-async def search_general_tours_service(input: SearchGeneralToursInput) -> dict:
+async def search_general_tours_service(input: SearchGeneralToursInput) -> dict[str, Any]:
     """Search Mainichi Travel general tours."""
     params: list[tuple[str, str]] = [
         ("travelType", str(input.travel_type.value)),
         ("page", str(input.page)),
     ]
-    if input.keyword:
+    if input.keyword not in (None, ""):
         params.append(("keyword", input.keyword))
-    if input.year_month:
+    if input.year_month not in (None, ""):
         params.append(("startDateYearMonthMin", input.year_month))
-    if input.list_order:
+    if input.list_order not in (None, ""):
         params.append(("listOrder", input.list_order))
 
     # Category arrays (must be added BEFORE fetching).
@@ -46,21 +48,20 @@ async def search_general_tours_service(input: SearchGeneralToursInput) -> dict:
         ),
         start=1,
     ):
-        if group:
-            for val in group:
-                params.append((f"categoryNos{group_no}[]", str(val)))
+        for val in group or ():
+            params.append((f"categoryNos{group_no}[]", str(val)))
 
     parsed_days = parse_days(input.day)
-    if parsed_days and len(parsed_days) > 1:
+    if parsed_days is not None and len(parsed_days) > 1:
         # The upstream API doesn't accept array day; fan out per day like bus.
-        async def fetch_for_day(d: int):
-            day_params = list(params) + [("startDateDayMin", str(d))]
+        async def fetch_for_day(d: int) -> dict[str, Any]:
+            day_params = [*list(params), ("startDateDayMin", str(d))]
             return await get_json(f"{MAIN_BASE}/api/v1/category_search", params=day_params)
 
         results = await gather_limited(fetch_for_day, parsed_days)
 
-        all_tours: list = []
-        data: dict = {"data": []}
+        all_tours: list[Any] = []
+        data: dict[str, Any] = {"data": []}
         for res in results:
             # Fail fast on throttle: no partial merges, no auto-retry.
             if res.get("error") == RATE_LIMIT_ERROR:
@@ -69,7 +70,7 @@ async def search_general_tours_service(input: SearchGeneralToursInput) -> dict:
                 all_tours.extend(res["data"])
         data["data"] = all_tours
     else:
-        if parsed_days and len(parsed_days) == 1:
+        if parsed_days is not None and len(parsed_days) == 1:
             params.append(("startDateDayMin", str(parsed_days[0])))
         data = await get_json(f"{MAIN_BASE}/api/v1/category_search", params=params)
 
@@ -79,11 +80,10 @@ async def search_general_tours_service(input: SearchGeneralToursInput) -> dict:
         for item in data["data"]:
             if c_no := item.get("courseNo"):
                 item["detail_url"] = derive_general_detail_url(c_no)
-            if input.min_price is not None or input.max_price is not None:
-                if not within_price_range(
-                    parse_price_jpy(item.get("price", "0")), input.min_price, input.max_price
-                ):
-                    continue
+            if (input.min_price is not None or input.max_price is not None) and not within_price_range(
+                parse_price_jpy(item.get("price", "0")), input.min_price, input.max_price
+            ):
+                continue
             if input.require_available_seats and not is_open_status(
                 item.get("saikouStatus", ""), GENERAL_CLOSED_STATUSES
             ):
@@ -93,10 +93,11 @@ async def search_general_tours_service(input: SearchGeneralToursInput) -> dict:
     return data
 
 
-async def get_general_tour_detail_service(input: GetGeneralTourDetailInput) -> dict:
+async def get_general_tour_detail_service(input: GetGeneralTourDetailInput) -> dict[str, Any]:
     """Fetch complete details for a general tour (shared tour_detail endpoint)."""
     if isinstance(input.course_no, list):
-        async def fetch_one(c_no: int):
+
+        async def fetch_one(c_no: int) -> dict[str, Any]:
             return await get_json(f"{API_BASE}/tour_detail", params={"course_no": str(c_no)})
 
         results = await gather_limited(fetch_one, input.course_no)
@@ -104,7 +105,7 @@ async def get_general_tour_detail_service(input: GetGeneralTourDetailInput) -> d
     return await get_json(f"{API_BASE}/tour_detail", params={"course_no": str(input.course_no)})
 
 
-async def get_tour_calendar_service(input: GetTourCalendarInput) -> dict:
+async def get_tour_calendar_service(input: GetTourCalendarInput) -> dict[str, Any]:
     """Fetch monthly departure calendar and tour schedule matrix."""
     url = f"{MAIN_BASE}/api/v1/calendar/{input.year}/{input.month}"
     params = {}

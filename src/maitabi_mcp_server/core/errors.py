@@ -10,7 +10,7 @@ RATE_LIMIT_RETRY_HINT = "wait ~60s and retry manually"
 THROTTLED_BODY_MESSAGE = "Too Many Attempts."
 
 
-def upstream_http_error(status_code: int, detail: str) -> dict:
+def upstream_http_error(status_code: int, detail: str) -> dict[str, str]:
     """Non-2xx upstream response."""
     return {
         "error": f"Upstream service returned error: {status_code}",
@@ -18,7 +18,7 @@ def upstream_http_error(status_code: int, detail: str) -> dict:
     }
 
 
-def connection_error(detail: str) -> dict:
+def connection_error(detail: str) -> dict[str, str]:
     """Network-level failure reaching the upstream host."""
     return {
         "error": "Failed to connect to Maitabi server",
@@ -26,7 +26,7 @@ def connection_error(detail: str) -> dict:
     }
 
 
-def rate_limit_error() -> dict:
+def rate_limit_error() -> dict[str, str]:
     """www.maitabi.jp throttling (HTTP 200 + 'Too Many Attempts.' body)."""
     return {
         "error": RATE_LIMIT_ERROR,
@@ -35,15 +35,16 @@ def rate_limit_error() -> dict:
     }
 
 
-def is_rate_limited_body(data) -> bool:
+def is_rate_limited_body(data: object) -> bool:
     """Detect www.maitabi.jp's HTTP-200 throttle body (no Retry-After header)."""
-    return (
-        isinstance(data, dict)
-        and isinstance(data.get("errors"), dict)
-        and data["errors"].get("message") == THROTTLED_BODY_MESSAGE
-    )
+    if not isinstance(data, dict):
+        return False
+    errors = data.get("errors")
+    if not isinstance(errors, dict):
+        return False
+    return bool(errors.get("message") == THROTTLED_BODY_MESSAGE)
 
 
-def is_error_payload(data) -> bool:
+def is_error_payload(data: object) -> bool:
     """True when a service result carries an error instead of data."""
     return isinstance(data, dict) and "error" in data

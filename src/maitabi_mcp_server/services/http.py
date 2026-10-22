@@ -5,6 +5,8 @@ normalization, and www.maitabi.jp's HTTP-200 throttle-body detection.
 """
 
 import asyncio
+from collections.abc import Awaitable, Callable, Mapping, Sequence
+from typing import Any, cast
 
 import httpx
 
@@ -25,10 +27,7 @@ def get_http_client() -> httpx.AsyncClient:
     """Get or initialize the shared httpx.AsyncClient instance."""
     global _client
     if _client is None or _client.is_closed:
-        _client = httpx.AsyncClient(
-            timeout=httpx.Timeout(15.0),
-            follow_redirects=True
-        )
+        _client = httpx.AsyncClient(timeout=httpx.Timeout(15.0), follow_redirects=True)
     return _client
 
 
@@ -40,7 +39,10 @@ async def close_http_client() -> None:
         _client = None
 
 
-async def get_json(url: str, params: list | dict | None = None) -> dict:
+async def get_json(
+    url: str,
+    params: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
+) -> dict[str, Any]:
     """GET `url`, parse JSON, and normalize every failure into an error payload.
 
     Never raises for upstream/network problems: errors come back as
@@ -50,7 +52,9 @@ async def get_json(url: str, params: list | dict | None = None) -> dict:
     """
     client = get_http_client()
     try:
-        res = await client.get(url, params=params)
+        # httpx keeps QueryParamTypes private; our mapping/sequence of pairs is
+        # structurally what it accepts, so the cast is only to name that type.
+        res = await client.get(url, params=cast(Any, params))
         res.raise_for_status()
         data = res.json()
     except httpx.HTTPStatusError as e:
@@ -62,7 +66,7 @@ async def get_json(url: str, params: list | dict | None = None) -> dict:
     return data
 
 
-async def gather_limited(factory, items: list):
+async def gather_limited[T, R](factory: Callable[[T], Awaitable[R]], items: Sequence[T]) -> list[R]:
     """Run `factory(item)` for each item with bounded concurrency, order kept.
 
     Used for per-day search fan-out and batch course_no fetching. `factory`
@@ -71,7 +75,7 @@ async def gather_limited(factory, items: list):
     """
     semaphore = asyncio.Semaphore(CONCURRENCY_LIMIT)
 
-    async def run_one(item):
+    async def run_one(item: T) -> R:
         async with semaphore:
             return await factory(item)
 

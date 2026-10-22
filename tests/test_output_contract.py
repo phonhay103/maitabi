@@ -6,18 +6,17 @@ cannot silently change what MCP clients and CLI scripts consume.
 """
 
 import json
-from datetime import datetime
 
 import pytest
 import respx
 from httpx import Response
 
+from maitabi_mcp_server.core.errors import RATE_LIMIT_ERROR
 from maitabi_mcp_server.core.inputs import (
     GetBusTourDetailInput,
     SearchBusToursInput,
     SearchGeneralToursInput,
 )
-from maitabi_mcp_server.core.errors import RATE_LIMIT_ERROR
 from maitabi_mcp_server.services.bus import (
     get_tour_detail_service,
     search_tours_service,
@@ -58,9 +57,7 @@ async def test_search_tours_golden_shape_and_detail_url():
     for key, value in BUS_TOUR_ITEM.items():
         assert item[key] == value
     # detail_url derived from the date field
-    assert item["detail_url"] == (
-        "https://bus.maitabi.jp/detail.html?course_no=14241&year=2026&month=9"
-    )
+    assert item["detail_url"] == ("https://bus.maitabi.jp/detail.html?course_no=14241&year=2026&month=9")
     # output is valid UTF-8 JSON with unescaped Japanese
     assert "立山" in json.dumps(out, ensure_ascii=False)
 
@@ -70,7 +67,7 @@ async def test_search_tours_golden_shape_and_detail_url():
 async def test_search_tours_price_and_availability_filters():
     tours = [
         dict(BUS_TOUR_ITEM, course_no=1, price="9,000円"),
-        dict(BUS_TOUR_ITEM, course_no=2, price="15,500円～"),
+        dict(BUS_TOUR_ITEM, course_no=2, price="15,500円\uff5e"),
         dict(BUS_TOUR_ITEM, course_no=3, price="30,000円"),
         dict(BUS_TOUR_ITEM, course_no=4, price="15,500円", status="満席"),
     ]
@@ -79,12 +76,10 @@ async def test_search_tours_price_and_availability_filters():
     )
     out = _load(
         await search_tours_service(
-            SearchBusToursInput(
-                month=9, min_price=10000, max_price=20000, require_available_seats=True
-            )
+            SearchBusToursInput(month=9, min_price=10000, max_price=20000, require_available_seats=True)
         )
     )
-    # 9,000円 under min; 30,000円 over max; 満席 dropped; 15,500円～ (strip ～) kept
+    # 9,000円 under min; 30,000円 over max; 満席 dropped; 15,500円\uff5e (tilde stripped) kept
     assert [t["course_no"] for t in out["tour"]] == [2]
 
 
@@ -150,9 +145,7 @@ async def test_general_search_rate_limit_error_shape():
 @respx.mock
 @pytest.mark.asyncio
 async def test_upstream_500_is_clear_error_not_exception():
-    respx.get("https://api.bus.maitabi.jp/tour_search").mock(
-        return_value=Response(500, text="oops")
-    )
+    respx.get("https://api.bus.maitabi.jp/tour_search").mock(return_value=Response(500, text="oops"))
     out = _load(await search_tours_service(SearchBusToursInput(month=9)))
     assert out["error"] == "Upstream service returned error: 500"
     assert "detail" in out

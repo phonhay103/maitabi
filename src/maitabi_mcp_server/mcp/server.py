@@ -2,6 +2,7 @@
 
 import argparse
 import os
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastmcp import FastMCP
@@ -11,11 +12,16 @@ from maitabi_mcp_server.services.http import close_http_client
 
 
 @asynccontextmanager
-async def app_lifespan(server):
+async def app_lifespan(_server: FastMCP) -> AsyncGenerator[None]:
     try:
         yield
     finally:
         await close_http_client()
+
+
+# Binding all interfaces is intentional: the HTTP/SSE transports exist to be
+# reached from outside the process (container or LAN), not only from localhost.
+DEFAULT_HOST = "0.0.0.0"  # noqa: S104
 
 
 def create_mcp() -> FastMCP:
@@ -29,7 +35,7 @@ def create_mcp() -> FastMCP:
 mcp = create_mcp()
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Maitabi MCP Server")
     parser.add_argument(
         "--transport",
@@ -39,7 +45,7 @@ def main():
     )
     parser.add_argument(
         "--host",
-        default=os.getenv("HOST", "0.0.0.0"),
+        default=os.getenv("HOST", DEFAULT_HOST),
         help="Host address for HTTP/SSE transport. Default: 0.0.0.0",
     )
     parser.add_argument(
@@ -58,6 +64,7 @@ def main():
 
     if args.transport == "stdio":
         import logging
+
         # Silence all standard logs to prevent noise on stderr that confuses client IDEs
         logging.basicConfig(level=logging.WARNING)
         for logger_name in ["mcp", "fastmcp", "uvicorn", "anyio"]:

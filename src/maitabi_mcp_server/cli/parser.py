@@ -8,14 +8,17 @@ importable without MCP dependencies installed.
 """
 
 import argparse
+from typing import Any
+
+from pydantic.fields import FieldInfo
 
 from maitabi_mcp_server.cli.fields import plan_field
 from maitabi_mcp_server.registry import ACTIONS
 
 
-def _add_field(p: argparse.ArgumentParser, name, info) -> None:
+def _add_field(p: argparse.ArgumentParser, name: str, info: FieldInfo) -> None:
     plan = plan_field(name, info)
-    kwargs: dict = {"dest": name, "help": info.description}
+    kwargs: dict[str, Any] = {"dest": name, "help": info.description}
     if plan.metavar is not None:
         kwargs["metavar"] = plan.metavar
     if plan.store_true:
@@ -32,10 +35,10 @@ def _add_field(p: argparse.ArgumentParser, name, info) -> None:
 
 
 def _add_output_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument("--pretty", action="store_true",
-                   help="Pretty-print JSON with indent=2")
-    p.add_argument("--output", type=str, default=None, metavar="FILE",
-                   help="Write JSON output to FILE instead of stdout")
+    p.add_argument("--pretty", action="store_true", help="Pretty-print JSON with indent=2")
+    p.add_argument(
+        "--output", type=str, default=None, metavar="FILE", help="Write JSON output to FILE instead of stdout"
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:

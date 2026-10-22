@@ -10,8 +10,10 @@ import argparse
 import asyncio
 import json
 import sys
+from collections.abc import Awaitable
+from typing import Any
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from maitabi_mcp_server.cli.fields import plan_field
 from maitabi_mcp_server.registry import Action
@@ -22,7 +24,7 @@ EXIT_UPSTREAM_ERROR = 1
 EXIT_INPUT_ERROR = 2
 
 
-def _emit(data: dict, args: argparse.Namespace) -> None:
+def _emit(data: dict[str, Any], args: argparse.Namespace) -> None:
     """Serialize the service dict to the CLI's JSON wire format.
 
     Always indent=2 / ensure_ascii=False — byte-identical to the historic
@@ -38,14 +40,14 @@ def _emit(data: dict, args: argparse.Namespace) -> None:
         print(text)
 
 
-async def _run(service_coro) -> dict:
+async def _run(service_coro: Awaitable[dict[str, Any]]) -> dict[str, Any]:
     try:
         return await service_coro
     finally:
         await close_http_client()
 
 
-def build_input(action: Action, args: argparse.Namespace):
+def build_input(action: Action, args: argparse.Namespace) -> BaseModel:
     """Map the parsed namespace onto the action's Input model.
 
     Every model field exists as a flag (both are generated from the same

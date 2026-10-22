@@ -30,10 +30,12 @@ async def test_calendar_throttle_returns_clear_error():
 @pytest.mark.asyncio
 async def test_search_throttle_fails_fast_on_batch():
     route = respx.get(url__regex=r"https://www\.maitabi\.jp/api/v1/category_search.*")
-    route.mock(side_effect=[
-        Response(200, json={"data": [{"courseNo": 1}]}),
-        Response(200, json=THROTTLE_BODY),
-    ])
+    route.mock(
+        side_effect=[
+            Response(200, json={"data": [{"courseNo": 1}]}),
+            Response(200, json=THROTTLE_BODY),
+        ]
+    )
     out = await search_general_tours_service(SearchGeneralToursInput(day="14-15"))
     assert out["error"] == RATE_LIMIT_ERROR
 
