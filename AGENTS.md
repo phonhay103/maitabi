@@ -2,6 +2,8 @@
 
 **Purpose**: Core logic lives once in `core/` + `services/`. MCP (`mcp/`) and CLI (`cli/`) are thin adapters generated from **one action registry** — `registry.py`. The tool catalog (`docs/TOOL_CATALOG.md`) and the per-skill `filter-mapping.md` copies are **generated from that code**, so the old manual Must-Match tables and sync checklists are gone: CI fails if they drift. Three skills stay independent; the `maitabi-mcp` skill is the procedure layer (which tool, in what order, how to read results) and always assumes the server is already connected — it contains zero setup.
 
+**API first, one documented exception.** Everything is a JSON endpoint except `general_get_tour_detail`: www.maitabi.jp has no detail API, so that one service reads the rendered page — the tour record from an embedded JSON literal, three tables from markup. See `services/general_detail.py` before changing it.
+
 **One package, three faces.** The installed artifact is `maitabi` (PyPI + image `phonhay103/maitabi`): CLI (`maitabi <bus|general> <command>`), MCP server (`maitabi mcp`), and the three skills. The CLI is the default interface for agents and scripts; MCP is the protocol adapter for clients that speak it; the skills carry the workflows. `dependencies` in `pyproject.toml` stay full (mcp, fastmcp, httpx, pydantic) so a single install serves every interface.
 
 ---
@@ -11,8 +13,9 @@
 ```
 Core:     core/enums.py + core/inputs.py (param source of truth) + core/filters.py
           + core/days.py + core/errors.py + config.py (env-overridable base URLs)
-Services: services/http.py (shared get_json + rate-limit detect + bounded fan-out)
+Services: services/http.py (shared get_json/get_html + rate-limit detect + bounded fan-out)
           + services/bus.py + services/general.py           (return plain dicts)
+          + services/general_detail.py + services/html_tables.py (detail-page reader)
 Wiring:   registry.py — one Action per capability (tool name, CLI command, Input
           model, service, endpoint, MCP doc, CLI help)
 MCP:      mcp/tools.py (tool signatures generated from model FieldInfo → flat schema)
@@ -35,7 +38,7 @@ Rules:
 
 ---
 
-## The 7 Actions
+## The 8 Actions
 
 Canonical table (MCP tool ↔ CLI subcommand ↔ Input model ↔ service ↔ endpoint) and every parameter/type/default are generated into **`docs/TOOL_CATALOG.md`** — read it there instead of copying it here. Sources: `registry.py` (actions) + `core/inputs.py` (params). ID value tables (departure/area/style/return-day/seat/lodge) live in `skills/maitabi-bus-extractor/references/filter-mapping.md`, copied into the other two skills by the generator.
 
@@ -43,7 +46,7 @@ Canonical table (MCP tool ↔ CLI subcommand ↔ Input model ↔ service ↔ end
 
 - **MCP wire schema** — `tests/test_mcp_schema.py` compares `tools/list` against `tests/fixtures/mcp_schema.json`. Byte-identical unless the change is intentional (then regenerate the fixture in the same commit and call it out in the changelog).
 - **Output shape** — `tests/test_output_contract.py` freezes `detail_url` formats, price/availability filters, multi-day fan-out, batch detail, and error payloads (`{"error", "detail"[, "retry_hint"]}`).
-- **Parity** — `tests/test_parity.py`: 7 MCP tools ↔ 7 CLI subcommands ↔ 7 registry actions.
+- **Parity** — `tests/test_parity.py`: 8 MCP tools ↔ 8 CLI subcommands ↔ 8 registry actions.
 - **CLI exit codes** — `tests/test_cli_exit_codes.py`: `0` OK, `1` upstream/network error, `2` input error (bad flag / failed validation).
 
 ---
@@ -67,6 +70,8 @@ Canonical table (MCP tool ↔ CLI subcommand ↔ Input model ↔ service ↔ end
 | Param source of truth | `src/maitabi/core/inputs.py` |
 | Enums / filters / errors | `src/maitabi/core/{enums,filters,errors}.py` |
 | Services | `src/maitabi/services/{http,bus,general}.py` |
+| Detail-page reader | `src/maitabi/services/general_detail.py` + `html_tables.py` |
+| Detail fixtures | `tests/fixtures/general_detail_*.html` |
 | Action registry | `src/maitabi/registry.py` |
 | MCP adapter | `src/maitabi/mcp/{tools,server}.py` |
 | CLI adapter | `src/maitabi/cli/{fields,parser,commands,main}.py` |

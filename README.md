@@ -70,6 +70,7 @@ Full parameter reference (MCP args, CLI flags, defaults, endpoints): **[`docs/TO
 |---|---|---|
 | `bus_list_filters` | `maitabi bus list-filters` | filter options, lodges, tour counts (cascading) |
 | `bus_list_district_groups` | `maitabi bus list-district-groups` | area/district groups + counts |
+| `bus_list_filter_master` | `maitabi bus list-filter-master` | one master list (`--kind style\|bus_sheet\|return_day\|district`), small payload |
 | `bus_search_tours` | `maitabi bus search-tours` | search tours and lodge packages |
 | `bus_get_tour_detail` | `maitabi bus get-tour-detail` | full itinerary by `course_no` (single or batch) |
 
@@ -78,8 +79,17 @@ Full parameter reference (MCP args, CLI flags, defaults, endpoints): **[`docs/TO
 | MCP tool | CLI | What it does |
 |---|---|---|
 | `general_search_tours` | `maitabi general search-tours` | search by `travel_type` 1-5, keyword, dates, categories |
-| `general_get_tour_detail` | `maitabi general get-tour-detail` | itinerary, meals, guide, booking links |
+| `general_get_tour_detail` | `maitabi general get-tour-detail` | itinerary, conditions, every departure + booking link |
 | `general_get_calendar` | `maitabi general get-calendar` | monthly departure matrix |
+
+## One deliberate exception to "API only"
+
+`www.maitabi.jp` publishes no tour-detail API — `api/v1` serves only `category_search` and `calendar/{year}/{month}`, and `api.bus.maitabi.jp` only knows mountain-bus courses. So `general_get_tour_detail` reads the rendered detail page, in a way that keeps the fragile surface small:
+
+- the tour record itself (title, description, price, statuses) comes from a JSON literal the page embeds (`const detailData = {...}`), parsed as JSON — no prose is scraped;
+- only three `<table>` elements are read from the markup: itinerary, travel conditions, and the departure/price matrix. Columns are matched by their Japanese headers, not by position.
+
+If the page ever loses that structure the tool returns an error naming `source_url` instead of a hollow object, and the offline fixtures in `tests/fixtures/` fail first.
 
 ## MCP server
 

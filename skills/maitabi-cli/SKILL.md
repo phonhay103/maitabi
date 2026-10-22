@@ -36,6 +36,8 @@ Every data subcommand accepts:
 ```bash
 maitabi bus list-filters --departure 1 --month 8 --pretty
 maitabi bus list-district-groups --departure 1 --month 8
+maitabi bus list-filter-master --kind district --month 11   # one master list, small payload
+maitabi bus list-filter-master --kind style --month 11 --area 18
 maitabi bus search-tours --departure 1 --month 11 --area 18 --page 1 --pretty
 maitabi bus search-tours --month 11 --day '14-16, 20' --max-price 20000 --require-available-seats
 maitabi bus search-tours --month 12 --style 6 --return-day 1 --bus-sheet 1 --keyword '立山'
@@ -43,7 +45,7 @@ maitabi bus get-tour-detail --course-no 14241 --pretty
 maitabi bus get-tour-detail --course-no 14241,8518 --output details.json
 ```
 
-Flags: `--departure 1|2|3` (default 1), `--month 1-12`, `--day 'D|list|range'`, `--area ID`, `--style 1-7`, `--return-day 1-5`, `--bus-sheet 1-6`, `--stay1/2/3 ID`, `--course-cd CODE`, `--keyword TEXT`, `--page N`, `--min-price`, `--max-price`, `--require-available-seats`.
+Flags: `--departure 1|2|3` (default 1), `--month 1-12`, `--day 'D|list|range'`, `--area ID`, `--style 1-7`, `--return-day 1-5`, `--bus-sheet 1-6`, `--stay1/2/3 ID`, `--course-cd CODE`, `--keyword TEXT`, `--page N`, `--min-price`, `--max-price`, `--require-available-seats`. `list-filter-master` adds the required `--kind style|bus_sheet|return_day|district`.
 
 ### `maitabi general` — tours & calendar (`www.maitabi.jp`)
 
@@ -80,6 +82,27 @@ Search commands return one envelope:
 - `count`/`page` are `null` when upstream does not report them; `items` is always a list.
 - Batch `get-tour-detail` returns the same envelope with `page: null`; a single course returns the detail object.
 - `status` is domain-native: Japanese string for bus, numeric code for general (1/2 bookable, 3 closed).
+- `list-filter-master` returns `{kind, options: [{id, name, tour_count}], query}`; `tour_count` is filter-aware, so `0` means unavailable for that combination.
+
+`general get-tour-detail` returns one object (no envelope): core keys first, then the upstream record, then the parsed page:
+
+```json
+{
+  "course_no": 25461,
+  "title": "…",
+  "description": "full tour description",
+  "itinerary": [{"day": 1, "schedule": "…", "lodging": ""}],
+  "conditions": {"duration": "0泊1日", "min_participants": 10, "tour_conductor": true,
+                 "local_staff": true, "meals": {"breakfast": 0, "lunch": 0, "dinner": 0},
+                 "departure_area": "関東", "purposes": ["現地発着ツアー"], "notes": "…"},
+  "departures": [{"date": "2026-11-01", "price": 3776, "departure_status": "催行決定",
+                  "booking_status": "受付中", "booking_url": "https://www.travel-answer.ne.jp/…"}],
+  "phone_reservation": true,
+  "source_url": "https://www.maitabi.jp/detail.php?courseNo=25461"
+}
+```
+
+General detail comes from the rendered page (no API exists); a `warnings` array appears if a table was missing, and `error` + `source_url` if the layout changed.
 
 Pipe tips:
 

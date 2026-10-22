@@ -26,6 +26,7 @@ This skill works with **plain HTTP only**. You build URL query strings, issue `G
 ### Layer 3: `parse_list(payload)`
 - Responses are JSON. Normalize each item to:
   - `course_no`/`courseNo`, `course_cd`/`courseCd`, `title`/`courseName`, `date`/`saikouDate`, `price`, `status`/`saikouStatus`, plus pagination (`count`, `page`, `param`/`data`).
+- www items nest the presentable fields under `tTravel` and report statuses as numbers (`1`/`2` bookable, `3` closed), unlike the bus domain's Japanese strings.
 - Append `detail_url` yourself:
   - Bus: `https://bus.maitabi.jp/detail.html?course_no={course_no}&year={YYYY}&month={M}` (derive YYYY/MM from the `date` field, e.g. `2026年09月12日(土)` → year=2026, month=9).
   - General: `https://www.maitabi.jp/detail.php?courseNo={courseNo}`.
@@ -93,11 +94,41 @@ curl -L -s 'https://api.bus.maitabi.jp/tour_search?departure=1&month=8&area=18&p
 curl -L -s 'https://api.bus.maitabi.jp/tour_search?departure=1&month=8&style=6&return_day=1&page=1'
 ```
 
-### `GET /tour_detail` — bus/general tour detail
+### `GET /tour_detail` — mountain-bus tour detail (bus courses only)
 
 ```bash
 curl -L -s 'https://api.bus.maitabi.jp/tour_detail?course_no=14241'
 ```
+
+Bus courses only. A www course number (e.g. 25461) returns HTTP 500 with a Laravel `Undefined offset: 0` page — there is no JSON detail endpoint for general tours.
+
+### `GET /{kind}` — one master list (style, bus_sheet, return_day, district)
+
+```bash
+# kind = style | bus_sheet | return_day | district
+curl -L -s 'https://api.bus.maitabi.jp/district?departure=1&month=11&area=18'
+```
+
+Returns `{"pulldown_options": {"<kind>": [{"id", "name", "tour_count"}]}, "param": {...}}`.
+Same data as `/tour_course`, one group at a time and a much smaller payload. Counts are filter-aware: `tour_count: 0` means that id has no tours under the other filters you sent.
+
+### `GET /detail.php?courseNo={n}` — general tour detail (HTML, no API)
+
+www.maitabi.jp has no detail endpoint; the page is the only source, and it is more structured than it looks:
+
+```bash
+curl -L -s 'https://www.maitabi.jp/detail.php?courseNo=25461'
+```
+
+1. It embeds the tour record as a JS literal, identical in shape to a `category_search` item:
+
+   ```js
+   const detailData = {"details":[{ "courseNo":25461, "tTravel":{ "point":"…description…" }, ... }]}
+   ```
+
+   Extract it with a JSON parser starting right after `const detailData = ` (use a raw JSON decoder; do not regex the object). This gives title, description, price, statuses, lodges.
+2. Three `<table>` elements carry the rest — itinerary (`日 / 予定`), travel conditions (`日数 / 旅行条件 / 食事条件 / その他 / 出発地 / 旅行代金 / ホテル / 旅行目的`), and departures (`出発日 / 旅行代金 / 催行状況 / 予約状況 / 予約受付`). Match columns by their Japanese header text, never by position — column order is not guaranteed.
+3. The monthly calendar under the departures table is rendered client-side (jsrender) from `/api/v1/calendar/{year}/{month}`; the page itself only ships the template.
 
 ### `GET /api/v1/category_search` — search general tours
 
