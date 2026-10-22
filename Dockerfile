@@ -40,5 +40,5 @@ ENV PATH="/app/.venv/bin:$PATH" \
 EXPOSE 8000
 
 # Run the MCP server over stdio or http streamable
-ENTRYPOINT ["maitabi-mcp-server"]
+ENTRYPOINT ["maitabi", "mcp"]
 CMD ["--transport", "stdio"]

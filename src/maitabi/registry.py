@@ -17,7 +17,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from maitabi_mcp_server.core.inputs import (
+from maitabi.core.inputs import (
     GetBusTourDetailInput,
     GetGeneralTourDetailInput,
     GetTourCalendarInput,
@@ -26,13 +26,13 @@ from maitabi_mcp_server.core.inputs import (
     SearchBusToursInput,
     SearchGeneralToursInput,
 )
-from maitabi_mcp_server.services.bus import (
+from maitabi.services.bus import (
     get_tour_detail_service,
     list_district_groups_service,
     list_filters_service,
     search_tours_service,
 )
-from maitabi_mcp_server.services.general import (
+from maitabi.services.general import (
     get_general_tour_detail_service,
     get_tour_calendar_service,
     search_general_tours_service,
@@ -43,7 +43,8 @@ from maitabi_mcp_server.services.general import (
 class Action:
     """One callable capability exposed over MCP and CLI alike."""
 
-    tool: str  # MCP tool name (snake_case)
+    domain: str  # upstream family: "bus" (api.bus.maitabi.jp) or "general" (www.maitabi.jp)
+    tool: str  # MCP tool name (snake_case, domain-prefixed)
     command: str  # CLI subcommand (kebab_case)
     input_model: type[BaseModel]  # parameter source of truth
     service: Callable[[Any], Awaitable[dict[str, Any]]]  # async core function
@@ -54,7 +55,8 @@ class Action:
 
 ACTIONS: tuple[Action, ...] = (
     Action(
-        tool="list_filters",
+        domain="bus",
+        tool="bus_list_filters",
         command="list-filters",
         input_model=ListFiltersInput,
         service=list_filters_service,
@@ -68,7 +70,8 @@ ACTIONS: tuple[Action, ...] = (
         help="Fetch bus tour filter options and tour counts",
     ),
     Action(
-        tool="list_district_groups",
+        domain="bus",
+        tool="bus_list_district_groups",
         command="list-district-groups",
         input_model=ListDistrictGroupsInput,
         service=list_district_groups_service,
@@ -81,7 +84,8 @@ ACTIONS: tuple[Action, ...] = (
         help="Fetch area/district groups and tour counts",
     ),
     Action(
-        tool="search_tours",
+        domain="bus",
+        tool="bus_search_tours",
         command="search-tours",
         input_model=SearchBusToursInput,
         service=search_tours_service,
@@ -95,7 +99,8 @@ ACTIONS: tuple[Action, ...] = (
         help="Search mountain bus tours with filters",
     ),
     Action(
-        tool="get_tour_detail",
+        domain="bus",
+        tool="bus_get_tour_detail",
         command="get-tour-detail",
         input_model=GetBusTourDetailInput,
         service=get_tour_detail_service,
@@ -109,8 +114,9 @@ ACTIONS: tuple[Action, ...] = (
         help="Fetch bus tour detail by course_no",
     ),
     Action(
-        tool="search_general_tours",
-        command="search-general-tours",
+        domain="general",
+        tool="general_search_tours",
+        command="search-tours",
         input_model=SearchGeneralToursInput,
         service=search_general_tours_service,
         endpoint="GET /category_search",
@@ -122,8 +128,9 @@ ACTIONS: tuple[Action, ...] = (
         help="Search general tours on www.maitabi.jp",
     ),
     Action(
-        tool="get_general_tour_detail",
-        command="get-general-tour-detail",
+        domain="general",
+        tool="general_get_tour_detail",
+        command="get-tour-detail",
         input_model=GetGeneralTourDetailInput,
         service=get_general_tour_detail_service,
         endpoint="GET /tour_detail",
@@ -136,8 +143,9 @@ ACTIONS: tuple[Action, ...] = (
         help="Fetch general tour detail by courseNo",
     ),
     Action(
-        tool="get_tour_calendar",
-        command="get-tour-calendar",
+        domain="general",
+        tool="general_get_calendar",
+        command="get-calendar",
         input_model=GetTourCalendarInput,
         service=get_tour_calendar_service,
         endpoint="GET /calendar/{year}/{month}",
@@ -151,5 +159,6 @@ ACTIONS: tuple[Action, ...] = (
     ),
 )
 
-ACTION_BY_COMMAND = {action.command: action for action in ACTIONS}
+DOMAINS: tuple[str, ...] = ("bus", "general")
+ACTION_BY_KEY = {(action.domain, action.command): action for action in ACTIONS}
 ACTION_BY_TOOL = {action.tool: action for action in ACTIONS}

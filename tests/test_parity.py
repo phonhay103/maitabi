@@ -1,47 +1,36 @@
 """Parity contract: MCP tools <-> CLI subcommands <-> core services.
 
-Guards the "Must-Match" invariant mechanically: adding/removing/renaming an
-action in one layer without the others fails here instead of drifting silently.
+Guards the "Must-Match" invariant mechanically: an MCP tool name is
+`<domain>_<command-with-underscores>`, so adding/removing/renaming an action in
+one layer without the others fails here instead of drifting silently.
 No network access.
 """
 
 import asyncio
 
-from maitabi_mcp_server.cli.parser import build_parser
-from maitabi_mcp_server.mcp.server import mcp
-from maitabi_mcp_server.services.bus import (
+from maitabi.cli.parser import build_parser
+from maitabi.mcp.server import mcp
+from maitabi.services.bus import (
     get_tour_detail_service,
     list_district_groups_service,
     list_filters_service,
     search_tours_service,
 )
-from maitabi_mcp_server.services.general import (
+from maitabi.services.general import (
     get_general_tour_detail_service,
     get_tour_calendar_service,
     search_general_tours_service,
 )
 
-# action -> (mcp_tool, cli_subcommand, service callable)
+# (domain, cli command) -> (mcp_tool, service callable)
 EXPECTED_ACTIONS = {
-    "list_filters": ("list_filters", "list-filters", list_filters_service),
-    "list_district_groups": (
-        "list_district_groups",
-        "list-district-groups",
-        list_district_groups_service,
-    ),
-    "search_tours": ("search_tours", "search-tours", search_tours_service),
-    "get_tour_detail": ("get_tour_detail", "get-tour-detail", get_tour_detail_service),
-    "search_general_tours": (
-        "search_general_tours",
-        "search-general-tours",
-        search_general_tours_service,
-    ),
-    "get_general_tour_detail": (
-        "get_general_tour_detail",
-        "get-general-tour-detail",
-        get_general_tour_detail_service,
-    ),
-    "get_tour_calendar": ("get_tour_calendar", "get-tour-calendar", get_tour_calendar_service),
+    ("bus", "list-filters"): ("bus_list_filters", list_filters_service),
+    ("bus", "list-district-groups"): ("bus_list_district_groups", list_district_groups_service),
+    ("bus", "search-tours"): ("bus_search_tours", search_tours_service),
+    ("bus", "get-tour-detail"): ("bus_get_tour_detail", get_tour_detail_service),
+    ("general", "search-tours"): ("general_search_tours", search_general_tours_service),
+    ("general", "get-tour-detail"): ("general_get_tour_detail", get_general_tour_detail_service),
+    ("general", "get-calendar"): ("general_get_calendar", get_tour_calendar_service),
 }
 
 
@@ -54,25 +43,36 @@ async def _list_tool_names() -> set[str]:
     return {t.name for t in tools}
 
 
-def _cli_subcommands() -> set[str]:
+def _cli_commands() -> set[tuple[str, str]]:
+    """Every (domain, command) pair the CLI exposes, excluding `mcp`."""
     parser = build_parser()
-    action = next(a for a in parser._actions if a.dest == "command")
-    return set(action.choices)
+    domains = next(a for a in parser._actions if a.dest == "domain")
+    pairs: set[tuple[str, str]] = set()
+    for domain, group in domains.choices.items():
+        if domain == "mcp":
+            continue
+        commands = next(a for a in group._actions if a.dest == "command")
+        pairs.update((domain, command) for command in commands.choices)
+    return pairs
 
 
 def test_mcp_tools_match_expected():
-    assert _mcp_tool_names() == {mcp_tool for mcp_tool, _, _ in EXPECTED_ACTIONS.values()}
+    assert _mcp_tool_names() == {tool for tool, _ in EXPECTED_ACTIONS.values()}
 
 
-def test_cli_subcommands_match_expected():
-    assert _cli_subcommands() == {sub for _, sub, _ in EXPECTED_ACTIONS.values()}
+def test_cli_commands_match_expected():
+    assert _cli_commands() == set(EXPECTED_ACTIONS)
 
 
-def test_mcp_cli_names_stay_in_sync():
-    """Every MCP snake_case tool has a matching kebab_case CLI subcommand."""
-    mcp_tools = _mcp_tool_names()
-    cli_subs = _cli_subcommands()
-    for tool in mcp_tools:
-        assert tool.replace("_", "-") in cli_subs, f"MCP tool {tool} has no CLI subcommand"
-    for sub in cli_subs:
-        assert sub.replace("-", "_") in mcp_tools, f"CLI subcommand {sub} has no MCP tool"
+def test_mcp_names_are_domain_prefixed_cli_names():
+    """MCP tool == "<domain>_" + command with dashes turned into underscores."""
+    for tool in _mcp_tool_names():
+        domain, _, rest = tool.partition("_")
+        assert domain in {"bus", "general"}, f"tool {tool} has no domain prefix"
+        assert (domain, rest.replace("_", "-")) in _cli_commands()
+
+
+def test_mcp_server_is_reachable_from_the_cli():
+    parser = build_parser()
+    domains = next(a for a in parser._actions if a.dest == "domain")
+    assert "mcp" in domains.choices

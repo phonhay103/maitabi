@@ -4,9 +4,9 @@ import pytest
 import respx
 from httpx import Response
 
-from maitabi_mcp_server.core.errors import RATE_LIMIT_ERROR
-from maitabi_mcp_server.core.inputs import GetTourCalendarInput, SearchGeneralToursInput
-from maitabi_mcp_server.services.general import (
+from maitabi.core.errors import RATE_LIMIT_ERROR
+from maitabi.core.inputs import GetTourCalendarInput, SearchGeneralToursInput
+from maitabi.services.general import (
     get_tour_calendar_service,
     search_general_tours_service,
 )

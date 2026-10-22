@@ -1,6 +1,6 @@
 [project]
-name = "maitabi-mcp-server"
-version = "0.3.0"
+name = "maitabi"
+version = "1.0.0"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
@@ -8,7 +8,7 @@ authors = [
 ]
 keywords = ["mcp", "fastmcp", "maitabi", "bus-tour", "japan-travel", "model-context-protocol"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
@@ -23,13 +23,12 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/phonhay103/maitabi-mcp-server"
-Repository = "https://github.com/phonhay103/maitabi-mcp-server"
-"Docker Hub" = "https://hub.docker.com/r/phonhay103/maitabi-mcp-server"
+Homepage = "https://github.com/phonhay103/maitabi"
+Repository = "https://github.com/phonhay103/maitabi"
+"Docker Hub" = "https://hub.docker.com/r/phonhay103/maitabi"
 
 [project.scripts]
-maitabi-mcp-server = "maitabi_mcp_server.mcp.server:main"
-maitabi = "maitabi_mcp_server.cli.main:main"
+maitabi = "maitabi.cli.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -88,7 +87,7 @@ ignore-fully-untyped = false
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
-known-first-party = ["maitabi_mcp_server"]
+known-first-party = ["maitabi"]
 
 [tool.ruff.lint.per-file-ignores]
 # Allow assert in testing, relax type annotation requirements

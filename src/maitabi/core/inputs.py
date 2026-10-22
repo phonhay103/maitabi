@@ -10,7 +10,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field
 
-from maitabi_mcp_server.core.enums import (
+from maitabi.core.enums import (
     BusSeatType,
     DeparturePoint,
     ReturnDayOption,

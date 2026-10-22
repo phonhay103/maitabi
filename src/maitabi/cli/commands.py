@@ -15,9 +15,9 @@ from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
-from maitabi_mcp_server.cli.fields import plan_field
-from maitabi_mcp_server.registry import Action
-from maitabi_mcp_server.services.http import close_http_client
+from maitabi.cli.fields import plan_field
+from maitabi.registry import Action
+from maitabi.services.http import close_http_client
 
 EXIT_OK = 0
 EXIT_UPSTREAM_ERROR = 1
@@ -68,7 +68,7 @@ def run_action(action: Action, args: argparse.Namespace) -> int:
     try:
         payload = build_input(action, args)
     except (ValidationError, ValueError) as exc:
-        print(f"maitabi: invalid arguments for {action.command}: {exc}", file=sys.stderr)
+        print(f"maitabi: invalid arguments for {action.domain} {action.command}: {exc}", file=sys.stderr)
         return EXIT_INPUT_ERROR
     data = asyncio.run(_run(action.service(payload)))
     _emit(data, args)

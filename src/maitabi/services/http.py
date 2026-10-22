@@ -10,7 +10,7 @@ from typing import Any, cast
 
 import httpx
 
-from maitabi_mcp_server.core.errors import (
+from maitabi.core.errors import (
     connection_error,
     is_rate_limited_body,
     rate_limit_error,

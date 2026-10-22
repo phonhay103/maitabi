@@ -3,29 +3,33 @@
 Each service maps an Input model → upstream query params → GET → result
 post-processing, and returns a plain dict. Serialization to JSON happens at
 the edge (MCP tool / CLI command), never here.
+
+Search returns the uniform envelope (see `core/envelope.py`); filter options,
+district groups, and single-tour detail return their own objects.
 """
 
 from datetime import datetime
 from enum import IntEnum
 from typing import Any
 
-from maitabi_mcp_server.config import API_BASE
-from maitabi_mcp_server.core.days import parse_days
-from maitabi_mcp_server.core.filters import (
+from maitabi.config import API_BASE
+from maitabi.core.days import parse_days
+from maitabi.core.envelope import as_int, dict_items, envelope, query_of
+from maitabi.core.filters import (
     BUS_CLOSED_STATUSES,
     derive_bus_detail_url,
     is_open_status,
     parse_price_jpy,
     within_price_range,
 )
-from maitabi_mcp_server.core.inputs import (
+from maitabi.core.inputs import (
     BusFilterBase,
     GetBusTourDetailInput,
     ListDistrictGroupsInput,
     ListFiltersInput,
     SearchBusToursInput,
 )
-from maitabi_mcp_server.services.http import gather_limited, get_json
+from maitabi.services.http import gather_limited, get_json
 
 
 def _enum_value(value: object) -> object:
@@ -54,6 +58,23 @@ def _bus_params(inp: BusFilterBase, *, default_month: bool = True) -> dict[str, 
     return params
 
 
+def _collect_tours(input: SearchBusToursInput, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Apply price/availability filters and derive `detail_url` for each item."""
+    kept: list[dict[str, Any]] = []
+    for item in items:
+        if (input.min_price is not None or input.max_price is not None) and not within_price_range(
+            parse_price_jpy(item.get("price", "0")), input.min_price, input.max_price
+        ):
+            continue
+        if input.require_available_seats and not is_open_status(item.get("status", ""), BUS_CLOSED_STATUSES):
+            continue
+        course_no = item.get("course_no")
+        if isinstance(course_no, (int, str)):
+            item["detail_url"] = derive_bus_detail_url(course_no, str(item.get("date", "")), input.month)
+        kept.append(item)
+    return kept
+
+
 async def list_filters_service(input: ListFiltersInput) -> dict[str, Any]:
     """Fetch available filter options for mountain bus tours."""
     return await get_json(f"{API_BASE}/tour_course", params=_bus_params(input))
@@ -70,6 +91,7 @@ async def search_tours_service(input: SearchBusToursInput) -> dict[str, Any]:
     params["page"] = str(input.page)
 
     parsed_days = parse_days(input.day)
+    count: int | None
     if parsed_days is not None and len(parsed_days) > 1:
         # Multi-day: fan out one request per day, then merge the tour lists.
         async def fetch_for_day(d: int) -> dict[str, Any]:
@@ -77,29 +99,30 @@ async def search_tours_service(input: SearchBusToursInput) -> dict[str, Any]:
             return await get_json(f"{API_BASE}/tour_search", params=day_params)
 
         results = await gather_limited(fetch_for_day, parsed_days)
-        data: dict[str, Any] = {"tour": []}
+        items: list[dict[str, Any]] = []
+        total = 0
+        known = False
         for res in results:
-            if "tour" in res and isinstance(res["tour"], list):
-                data["tour"].extend(res["tour"])
+            if "error" in res:
+                return res
+            day_items = dict_items(res.get("tour"))
+            if day_items:
+                items.extend(day_items)
+                day_count = as_int(res.get("count"))
+                if day_count is not None:
+                    total += day_count
+                    known = True
+        count = total if known else None
     else:
         if parsed_days is not None and len(parsed_days) == 1:
             params["day"] = str(parsed_days[0])
         data = await get_json(f"{API_BASE}/tour_search", params=params)
+        if "error" in data:
+            return data
+        items = dict_items(data.get("tour"))
+        count = as_int(data.get("count"))
 
-    # Post-process: price filter, availability filter, detail_url enrichment.
-    if "tour" in data and isinstance(data["tour"], list):
-        filtered_tours = []
-        for item in data["tour"]:
-            if (input.min_price is not None or input.max_price is not None) and not within_price_range(
-                parse_price_jpy(item.get("price", "0")), input.min_price, input.max_price
-            ):
-                continue
-            if input.require_available_seats and not is_open_status(item.get("status", ""), BUS_CLOSED_STATUSES):
-                continue
-            item["detail_url"] = derive_bus_detail_url(item.get("course_no"), item.get("date", ""), input.month)
-            filtered_tours.append(item)
-        data["tour"] = filtered_tours
-    return data
+    return envelope(items=_collect_tours(input, items), count=count, page=input.page, query=query_of(input))
 
 
 async def get_tour_detail_service(input: GetBusTourDetailInput) -> dict[str, Any]:
@@ -110,5 +133,5 @@ async def get_tour_detail_service(input: GetBusTourDetailInput) -> dict[str, Any
             return await get_json(f"{API_BASE}/tour_detail", params={"course_no": str(c_no)})
 
         results = await gather_limited(fetch_one, input.course_no)
-        return {"tours": results}
+        return envelope(items=results, count=len(results), page=None, query=query_of(input))
     return await get_json(f"{API_BASE}/tour_detail", params={"course_no": str(input.course_no)})

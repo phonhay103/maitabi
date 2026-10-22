@@ -7,11 +7,15 @@ exact wire semantics that both the MCP tools and the CLI expose.
 
 from datetime import datetime
 
-from maitabi_mcp_server.config import MAIN_BASE, WEB_BASE
+from maitabi.config import MAIN_BASE, WEB_BASE
 
-# Upstream status strings that mean "not bookable" per domain.
-BUS_CLOSED_STATUSES = ("満席", "受付終了", "")
-GENERAL_CLOSED_STATUSES = ("満席", "受付終了", "キャンセル待ち", "催行中止", "")
+# Upstream statuses that mean "not bookable" per domain.
+#
+# bus.maitabi.jp reports Japanese strings; www.maitabi.jp reports numbers where
+# 1 = maru-double, 2 = maru, 3 = batsu (closed). Only the explicit closed values
+# code must never make an existing tour disappear from results.
+BUS_CLOSED_STATUSES: tuple[object, ...] = ("満席", "受付終了", "")
+GENERAL_CLOSED_STATUSES: tuple[object, ...] = (3,)
 
 
 def parse_price_jpy(raw: object) -> int | None:
@@ -34,8 +38,8 @@ def within_price_range(price_jpy: int | None, min_price: int | None, max_price: 
     return not (max_price is not None and price_jpy > max_price)
 
 
-def is_open_status(status: str, closed_statuses: tuple[str, ...]) -> bool:
-    """True when an upstream status string means the tour is still bookable."""
+def is_open_status(status: object, closed_statuses: tuple[object, ...]) -> bool:
+    """True when an upstream status (string or numeric code) is still bookable."""
     return status not in closed_statuses
 
 

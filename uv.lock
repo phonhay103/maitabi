@@ -598,8 +598,8 @@ wheels = [
 ]
 
 [[package]]
-name = "maitabi-mcp-server"
-version = "0.3.0"
+name = "maitabi"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },

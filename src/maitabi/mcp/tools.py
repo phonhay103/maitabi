@@ -13,7 +13,7 @@ from typing import Any, cast
 
 from fastmcp import FastMCP
 
-from maitabi_mcp_server.registry import ACTIONS, Action
+from maitabi.registry import ACTIONS, Action
 
 
 def _dumps(data: dict[str, Any]) -> str:

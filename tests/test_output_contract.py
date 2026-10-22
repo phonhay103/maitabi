@@ -1,8 +1,8 @@
-"""Golden output contract: services keep the documented JSON wire shape.
+"""Golden output contract: the documented JSON wire shape.
 
-Fully mocked with respx — no network. These tests freeze the current output
-contract (keys, detail_url format, error shape) so the core/adapters refactor
-cannot silently change what MCP clients and CLI scripts consume.
+Fully mocked with respx — no network. These tests freeze what MCP clients and
+CLI scripts consume: the envelope keys, the per-item core keys, the
+`detail_url` formats, and the error shape.
 """
 
 import json
@@ -11,17 +11,17 @@ import pytest
 import respx
 from httpx import Response
 
-from maitabi_mcp_server.core.errors import RATE_LIMIT_ERROR
-from maitabi_mcp_server.core.inputs import (
+from maitabi.core.errors import RATE_LIMIT_ERROR
+from maitabi.core.inputs import (
     GetBusTourDetailInput,
     SearchBusToursInput,
     SearchGeneralToursInput,
 )
-from maitabi_mcp_server.services.bus import (
+from maitabi.services.bus import (
     get_tour_detail_service,
     search_tours_service,
 )
-from maitabi_mcp_server.services.general import (
+from maitabi.services.general import (
     search_general_tours_service,
 )
 
@@ -37,6 +37,8 @@ BUS_TOUR_ITEM = {
     "phone_reserve": 0,
 }
 
+ENVELOPE_KEYS = {"count", "page", "items", "query"}
+
 
 def _load(result) -> dict:
     """Services return dicts; tolerate JSON strings too (legacy shape)."""
@@ -51,8 +53,13 @@ async def test_search_tours_golden_shape_and_detail_url():
     )
     out = _load(await search_tours_service(SearchBusToursInput(month=9, day=12)))
 
-    assert set(out) >= {"count", "page", "tour", "param"}
-    item = out["tour"][0]
+    assert set(out) == ENVELOPE_KEYS
+    assert out["count"] == 2  # upstream "2" → int
+    assert out["page"] == 1
+    assert out["query"]["month"] == 9
+    assert out["query"]["day"] == [12]
+
+    item = out["items"][0]
     # every original upstream field survives
     for key, value in BUS_TOUR_ITEM.items():
         assert item[key] == value
@@ -80,7 +87,9 @@ async def test_search_tours_price_and_availability_filters():
         )
     )
     # 9,000円 under min; 30,000円 over max; 満席 dropped; 15,500円\uff5e (tilde stripped) kept
-    assert [t["course_no"] for t in out["tour"]] == [2]
+    assert [t["course_no"] for t in out["items"]] == [2]
+    # count is the upstream total for the query, before client-side post-filters
+    assert out["count"] == 4
 
 
 @respx.mock
@@ -89,18 +98,34 @@ async def test_search_tours_multi_day_fans_out_and_merges():
     route = respx.get("https://api.bus.maitabi.jp/tour_search")
     route.mock(
         side_effect=[
-            Response(200, json={"tour": [dict(BUS_TOUR_ITEM, course_no=11)]}),
-            Response(200, json={"tour": [dict(BUS_TOUR_ITEM, course_no=12)]}),
+            Response(200, json={"count": "1", "tour": [dict(BUS_TOUR_ITEM, course_no=11)]}),
+            Response(200, json={"count": "2", "tour": [dict(BUS_TOUR_ITEM, course_no=12)]}),
         ]
     )
     out = _load(await search_tours_service(SearchBusToursInput(month=9, day="14-15")))
-    assert [t["course_no"] for t in out["tour"]] == [11, 12]
+    assert [t["course_no"] for t in out["items"]] == [11, 12]
+    assert out["count"] == 3  # sum of the per-day totals
     assert route.call_count == 2
 
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_get_tour_detail_batch_wraps_in_tours_list():
+async def test_search_tours_multi_day_unknown_count_stays_null():
+    route = respx.get("https://api.bus.maitabi.jp/tour_search")
+    route.mock(
+        side_effect=[
+            Response(200, json={"tour": [dict(BUS_TOUR_ITEM, course_no=11)]}),
+            Response(200, json={"tour": [dict(BUS_TOUR_ITEM, course_no=12)]}),
+        ]
+    )
+    out = _load(await search_tours_service(SearchBusToursInput(month=9, day="14-15")))
+    # Upstream did not report a total: null, never len(items).
+    assert out["count"] is None
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_get_tour_detail_batch_returns_envelope():
     route = respx.get("https://api.bus.maitabi.jp/tour_detail")
     route.mock(
         side_effect=[
@@ -109,31 +134,80 @@ async def test_get_tour_detail_batch_wraps_in_tours_list():
         ]
     )
     out = _load(await get_tour_detail_service(GetBusTourDetailInput(course_no=[14241, 8518])))
-    assert [t["course_no"] for t in out["tours"]] == [14241, 8518]
+    assert set(out) == ENVELOPE_KEYS
+    assert out["page"] is None
+    assert [t["course_no"] for t in out["items"]] == [14241, 8518]
 
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_general_search_detail_url_and_statuses():
+async def test_general_search_envelope_and_item_normalisation():
     respx.get("https://www.maitabi.jp/api/v1/category_search").mock(
         return_value=Response(
             200,
             json={
                 "data": [
-                    {"courseNo": 1723, "price": "30,000円", "saikouStatus": "受付中"},
-                    {"courseNo": 24865, "price": "99,000円", "saikouStatus": "キャンセル待ち"},
-                ]
+                    {
+                        "courseNo": 1723,
+                        "saikouDate": "2026-11-01",
+                        "yoyakuStatus": 1,
+                        "roomPriceMin": 30000,
+                        "tTravel": {"courseName": "富士山", "courseCd": "M1", "priceMin": 30000},
+                    },
+                    {
+                        "courseNo": 24865,
+                        "saikouDate": "2026-11-02",
+                        "yoyakuStatus": 3,  # closed
+                        "roomPriceMin": 99000,
+                        "tTravel": {"courseName": "槍ヶ岳", "courseCd": "M2", "priceMin": 99000},
+                    },
+                ],
+                "meta": {"paging": {"page": 1, "total": 45}},
             },
         )
     )
     out = _load(await search_general_tours_service(SearchGeneralToursInput(require_available_seats=True)))
-    assert [d["courseNo"] for d in out["data"]] == [1723]
-    assert out["data"][0]["detail_url"] == "https://www.maitabi.jp/detail.php?courseNo=1723"
+
+    assert set(out) == ENVELOPE_KEYS
+    assert out["count"] == 45  # from meta.paging.total, not len(items)
+    assert out["page"] == 1
+    assert [d["course_no"] for d in out["items"]] == [1723]
+
+    item = out["items"][0]
+    # the same core keys the bus domain exposes
+    assert item["course_cd"] == "M1"
+    assert item["title"] == "富士山"
+    assert item["date"] == "2026-11-01"
+    assert item["price"] == 30000
+    assert item["status"] == 1
+    assert item["detail_url"] == "https://www.maitabi.jp/detail.php?courseNo=1723"
+    # upstream keys are kept, never replaced
+    assert item["courseNo"] == 1723
 
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_general_search_rate_limit_error_shape():
+async def test_general_search_price_filter_uses_real_price_field():
+    respx.get("https://www.maitabi.jp/api/v1/category_search").mock(
+        return_value=Response(
+            200,
+            json={
+                "data": [
+                    {"courseNo": 1, "yoyakuStatus": 1, "roomPriceMin": 9000},
+                    {"courseNo": 2, "yoyakuStatus": 1, "roomPriceMin": 15000},
+                    {"courseNo": 3, "yoyakuStatus": 1, "roomPriceMin": 30000},
+                ],
+                "meta": {"paging": {"page": 1, "total": 3}},
+            },
+        )
+    )
+    out = _load(await search_general_tours_service(SearchGeneralToursInput(min_price=10000, max_price=20000)))
+    assert [d["course_no"] for d in out["items"]] == [2]
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_general_search_error_passes_through_unchanged():
     respx.get("https://www.maitabi.jp/api/v1/category_search").mock(
         return_value=Response(200, json={"errors": {"code": 0, "message": "Too Many Attempts."}})
     )
