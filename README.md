@@ -1,6 +1,6 @@
 # Maitabi (Python)
 
-[![Hosted MCP server](https://img.shields.io/badge/MCP_server-online-2ea44f)](https://maitabi.fastmcp.app/mcp)
+[![Hosted MCP server](https://img.shields.io/badge/MCP_server-online-2ea44f)](https://maitabi.fastmcp.app/mcp) [![Connect](https://img.shields.io/badge/connect-Horizon-6e56cf)](https://horizon.prefect.io/connect/eyJuYW1lIjoibWFpdGFiaSIsInRpdGxlIjoibWFpdGFiaSIsImRlc2NyaXB0aW9uIjoiIiwicmVtb3RlcyI6W3sidXJsIjoiaHR0cHM6Ly9tYWl0YWJpLmZhc3RtY3AuYXBwL21jcCIsInR5cGUiOiJodHRwIn1dfQ)
 
 Search **Maitabi (まいたび — 毎日新聞旅行 / 毎日あるぺん号)** from one package: mountain bus tours (`bus.maitabi.jp`), general travel and trekking tours, and departure calendars (`www.maitabi.jp`). It ships as a CLI, an MCP server, and three agent skills — all driven by the same eight actions.
 
