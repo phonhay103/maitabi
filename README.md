@@ -155,6 +155,20 @@ Local checkout, no install:
 
 Tools are named `<domain>_<command>`: `bus_*` reads `api.bus.maitabi.jp`, `general_*` reads `www.maitabi.jp`.
 
+### Gemini
+
+The web app can take the hosted endpoint as a custom app; it opens the OAuth sign-in itself, so there is no client ID or secret to paste:
+
+1. Open [Customize → Connectors](https://gemini.google.com/customize/connectors) — on an older UI it is **Settings → Connected Apps → Custom apps**.
+2. **Add a custom app**, paste `https://maitabi.fastmcp.app/mcp`, click **Next**, and sign in when prompted.
+3. In a prompt, type `@` and pick the app so Gemini routes the request to it.
+
+Google still gates custom apps to a personal Google Account (not work or school), 18+, US, English, Keep Activity on, and a plan that includes Gemini Spark. The Gemini CLI has none of those limits:
+
+```bash
+gemini mcp add --transport http --scope user maitabi https://maitabi.fastmcp.app/mcp
+```
+
 ## Agent skills
 
 ```bash
