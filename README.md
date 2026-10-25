@@ -155,19 +155,16 @@ Local checkout, no install:
 
 Tools are named `<domain>_<command>`: `bus_*` reads `api.bus.maitabi.jp`, `general_*` reads `www.maitabi.jp`.
 
-### Gemini
+### Gemini (web app)
 
-The web app can take the hosted endpoint as a custom app; it opens the OAuth sign-in itself, so there is no client ID or secret to paste:
+Add the hosted endpoint as a custom app at <https://gemini.google.com/customize/connectors> — Gemini runs the OAuth flow itself, so there is no client ID or secret to paste:
 
-1. Open [Customize → Connectors](https://gemini.google.com/customize/connectors) — on an older UI it is **Settings → Connected Apps → Custom apps**.
-2. **Add a custom app**, paste `https://maitabi.fastmcp.app/mcp`, click **Next**, and sign in when prompted.
-3. In a prompt, type `@` and pick the app so Gemini routes the request to it.
+1. Open **Customize → Connectors**, or **Settings → Connected Apps → Custom apps** on the older UI. If the "Add a custom app" field is missing, switch the **Chat / Spark** toggle to Spark first.
+2. **Add a custom app**, paste `https://maitabi.fastmcp.app/mcp`, click **Next**.
+3. Approve the Google Account link, then sign in on the server's OAuth page.
+4. In a Spark chat, type `@` and pick the app. Gemini asks permission for each tool call.
 
-Google still gates custom apps to a personal Google Account (not work or school), 18+, US, English, Keep Activity on, and a plan that includes Gemini Spark. The Gemini CLI has none of those limits:
-
-```bash
-gemini mcp add --transport http --scope user maitabi https://maitabi.fastmcp.app/mcp
-```
+Google still limits custom apps to a personal Google Account (not work or school), 18+, US, English, Keep Activity on, and a plan that includes Gemini Spark.
 
 ## Agent skills
 
