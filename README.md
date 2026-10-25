@@ -166,6 +166,17 @@ Add the hosted endpoint as a custom app at <https://gemini.google.com/customize/
 
 Google still limits custom apps to a personal Google Account (not work or school), 18+, US, English, Keep Activity on, and a plan that includes Gemini Spark.
 
+### ChatGPT (web app)
+
+Add the hosted endpoint as a plugin at <https://chatgpt.com/plugins> — the OAuth client registers itself, so any client ID or secret field stays empty:
+
+1. Open **Plugins → + → Add custom MCP server** (some accounts still say **Create custom MCP server**; developer mode is no longer needed).
+2. Name it `Maitabi`, then under **Connection → Server URL** paste `https://maitabi.fastmcp.app/mcp`.
+3. Set **Authentication → OAuth**, tick "I understand and want to continue", and click **Create as a plugin**. ChatGPT reads the tool list from the server.
+4. Install the plugin, start a chat, type `@` and pick it. Each write action asks for confirmation.
+
+Custom MCP servers are created on the web only, and a work workspace can withhold the permission — on Business and Enterprise/Edu an admin owns that switch.
+
 ## Agent skills
 
 ```bash
