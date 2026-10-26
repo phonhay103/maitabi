@@ -11,11 +11,18 @@ THROTTLED_BODY_MESSAGE = "Too Many Attempts."
 
 
 def upstream_http_error(status_code: int, detail: str) -> dict[str, str]:
-    """Non-2xx upstream response."""
-    return {
+    """Non-2xx upstream response.
+
+    A 4xx means upstream refused *this* request, so the hint points at the
+    inputs; a 5xx is theirs to fix, and repeating the same query may work.
+    """
+    payload = {
         "error": f"Upstream service returned error: {status_code}",
         "detail": detail,
     }
+    if 400 <= status_code < 500:
+        payload["retry_hint"] = "upstream rejected this request: check the filter values and IDs before retrying"
+    return payload
 
 
 def connection_error(detail: str) -> dict[str, str]:

@@ -155,6 +155,10 @@ Local checkout, no install:
 
 Tools are named `<domain>_<command>`: `bus_*` reads `api.bus.maitabi.jp`, `general_*` reads `www.maitabi.jp`.
 
+Every tool is read-only (`readOnlyHint`, `idempotentHint`, `destructiveHint: false`), carries a `Maitabi: …` title, and returns its payload twice: the text block is the same JSON the CLI prints, and `structuredContent` is that object already parsed. A payload carrying `error` is reported as `isError: true` with the `retry_hint`, so a rate-limited call does not look like an empty result. The server also sends short `instructions` on `initialize`: the discovery → search → detail flow, the envelope shape, and the 60 req/min cap on `general_*`.
+
+See [`CHANGELOG.md`](CHANGELOG.md) for what changed in each release, and [`evals/`](evals/) for the live evaluation suite that checks the tools are usable without the skills.
+
 ### Gemini (web app)
 
 Add the hosted endpoint as a custom app at <https://gemini.google.com/customize/connectors> — Gemini runs the OAuth flow itself, so there is no client ID or secret to paste:

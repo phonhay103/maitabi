@@ -47,7 +47,8 @@ class BusFilterBase(BaseModel):
         Field(
             default=None,
             ge=0,
-            description="Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All)",
+            description="Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). "
+            "Discover IDs with bus_list_district_groups.",
         ),
     ] = None
     style: Annotated[
@@ -76,16 +77,17 @@ class BusFilterBase(BaseModel):
         Field(
             default=None,
             ge=1,
-            description="Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso)",
+            description="Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso). "
+            "Discover IDs with bus_list_filters (lodges).",
         ),
     ] = None
     stay2: Annotated[
         int | None,
-        Field(default=None, ge=1, description="Mountain lodge ID for night 2"),
+        Field(default=None, ge=1, description="Mountain lodge ID for night 2 (see bus_list_filters for IDs)"),
     ] = None
     stay3: Annotated[
         int | None,
-        Field(default=None, ge=1, description="Mountain lodge ID for night 3"),
+        Field(default=None, ge=1, description="Mountain lodge ID for night 3 (see bus_list_filters for IDs)"),
     ] = None
     course_cd: Annotated[
         str | None,
@@ -183,7 +185,7 @@ class GetBusTourDetailInput(BaseModel):
     course_no: Annotated[
         int | list[int],
         Field(
-            description="Internal course number(s) on bus.maitabi.jp (e.g., 14241, 8518). Can be a single int or list of ints for batch fetching.",
+            description="Internal course number(s) on bus.maitabi.jp, copied from a bus_search_tours result (e.g., 14241, 8518). Can be a single int or list of ints for batch fetching.",
         ),
     ]
 
@@ -242,7 +244,7 @@ class SearchGeneralToursInput(BaseModel):
         Field(default=False, description="If True, filters out full/closed tours (満席, 受付終了)."),
     ] = False
     list_order: Annotated[
-        str | None,
+        Literal["startDateAsc", "saikouStatus", "yoyakuStatus", "priceAsc", "priceDesc"] | None,
         Field(
             default=None,
             description="Sort order: 'startDateAsc' (departure earliest), 'saikouStatus' (departure status), 'yoyakuStatus' (availability), 'priceAsc' (price low to high), 'priceDesc' (price high to low)",
@@ -291,7 +293,7 @@ class GetGeneralTourDetailInput(BaseModel):
     course_no: Annotated[
         int | list[int],
         Field(
-            description="Tour course number(s) on www.maitabi.jp (e.g., 1723, 24865). Can be a single int or list of ints for batch fetching.",
+            description="Tour course number(s) on www.maitabi.jp, copied from a general_search_tours result (e.g., 1723, 24865). Can be a single int or list of ints for batch fetching.",
         ),
     ]
 

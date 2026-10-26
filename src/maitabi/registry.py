@@ -44,6 +44,7 @@ class Action:
 
     domain: str  # upstream family: "bus" (api.bus.maitabi.jp) or "general" (www.maitabi.jp)
     tool: str  # MCP tool name (snake_case, domain-prefixed)
+    title: str  # MCP tool title (the service prefix lives here, not in `tool`)
     command: str  # CLI subcommand (kebab_case)
     input_model: type[BaseModel]  # parameter source of truth
     service: Callable[[Any], Awaitable[dict[str, Any]]]  # async core function
@@ -56,6 +57,7 @@ ACTIONS: tuple[Action, ...] = (
     Action(
         domain="bus",
         tool="bus_list_filters",
+        title="Maitabi: list bus tour filter options",
         command="list-filters",
         input_model=ListFiltersInput,
         service=list_filters_service,
@@ -64,13 +66,15 @@ ACTIONS: tuple[Action, ...] = (
             "Fetch available filter dropdown options, departure areas, tour styles, mountain lodges, "
             "and tour counts for Maitabi bus tours.\n\n"
             "Supports cascading filtering\u2014options and counts update dynamically based on other "
-            "selected filters."
+            "selected filters. This is the large, everything-at-once call: prefer "
+            "bus_list_filter_master when you need only one group."
         ),
         help="Fetch bus tour filter options and tour counts",
     ),
     Action(
         domain="bus",
         tool="bus_list_district_groups",
+        title="Maitabi: list bus area and district groups",
         command="list-district-groups",
         input_model=ListDistrictGroupsInput,
         service=list_district_groups_service,
@@ -85,6 +89,7 @@ ACTIONS: tuple[Action, ...] = (
     Action(
         domain="bus",
         tool="bus_search_tours",
+        title="Maitabi: search mountain bus tours",
         command="search-tours",
         input_model=SearchBusToursInput,
         service=search_tours_service,
@@ -92,14 +97,16 @@ ACTIONS: tuple[Action, ...] = (
         doc=(
             "Search mountain bus tours and lodge packages on Maitabi (bus.maitabi.jp) with detailed "
             "filter criteria.\n\n"
-            "Returns a JSON string containing matching bus tours, seat options, pricing, departure "
-            "dates, and course numbers."
+            "Returns the search envelope: count (upstream total, before the price and availability "
+            "filters), page, items with course_no, title, date, price in JPY, status and detail_url, "
+            "and the query actually sent. Pass course_no to bus_get_tour_detail for the itinerary."
         ),
         help="Search mountain bus tours with filters",
     ),
     Action(
         domain="bus",
         tool="bus_get_tour_detail",
+        title="Maitabi: bus tour detail",
         command="get-tour-detail",
         input_model=GetBusTourDetailInput,
         service=get_tour_detail_service,
@@ -107,28 +114,32 @@ ACTIONS: tuple[Action, ...] = (
         doc=(
             "Fetch detailed information, schedule, pricing, and bus stops for a specific Maitabi "
             "mountain bus tour by course_no.\n\n"
-            "Returns a JSON string containing complete tour itinerary, bus departure points, seat "
-            "options, pricing, and lodging info."
+            "Returns the detail object for a single course_no (itinerary, bus stops, seat options, "
+            "pricing, lodging), or the batch envelope with page: null when course_no is a list; an "
+            "item in that list can carry its own error."
         ),
         help="Fetch bus tour detail by course_no",
     ),
     Action(
         domain="general",
         tool="general_search_tours",
+        title="Maitabi: search general tours",
         command="search-tours",
         input_model=SearchGeneralToursInput,
         service=search_general_tours_service,
         endpoint="GET /category_search",
         doc=(
             "Search general travel tours and mountain climbing packages on www.maitabi.jp.\n\n"
-            "Returns a JSON string containing matching tours, total count, pagination, sorting, and "
-            "categories."
+            "Returns the search envelope: count (upstream total), page, items with course_no, title, "
+            "date, price in JPY, a numeric status (1/2 bookable, 3 closed) and detail_url, plus the "
+            "query actually sent. Capped at 60 requests/min per IP."
         ),
         help="Search general tours on www.maitabi.jp",
     ),
     Action(
         domain="general",
         tool="general_get_tour_detail",
+        title="Maitabi: general tour detail",
         command="get-tour-detail",
         input_model=GetGeneralTourDetailInput,
         service=get_general_tour_detail_service,
@@ -138,13 +149,15 @@ ACTIONS: tuple[Action, ...] = (
             "conditions (minimum participants, tour conductor, meals), every departure date with price "
             "and booking status, the full description, and the booking link.\n\n"
             "www.maitabi.jp publishes no detail API, so this reads the rendered detail page: the tour "
-            "record comes from the page's embedded JSON and the three tables from its markup."
+            "record comes from the page's embedded JSON and the three tables from its markup. One "
+            "object per single course_no, an envelope for a list. Capped at 60 requests/min per IP."
         ),
         help="Fetch general tour detail by courseNo",
     ),
     Action(
         domain="bus",
         tool="bus_list_filter_master",
+        title="Maitabi: list one filter master list",
         command="list-filter-master",
         input_model=ListFilterMasterInput,
         service=list_filter_master_service,
@@ -161,6 +174,7 @@ ACTIONS: tuple[Action, ...] = (
     Action(
         domain="general",
         tool="general_get_calendar",
+        title="Maitabi: monthly departure calendar",
         command="get-calendar",
         input_model=GetTourCalendarInput,
         service=get_tour_calendar_service,
@@ -168,8 +182,9 @@ ACTIONS: tuple[Action, ...] = (
         doc=(
             "Fetch monthly departure calendar and tour schedule matrix on www.maitabi.jp for a given "
             "year and month.\n\n"
-            "Returns a JSON string with daily departure schedule matrix, tour availability, and "
-            "calendar dates."
+            "Returns the daily departure matrix with tour availability. Use it to see which days have "
+            "departures before searching a range; narrow with travel_type because the full matrix is "
+            "large. Capped at 60 requests/min per IP."
         ),
         help="Fetch monthly departure calendar matrix",
     ),

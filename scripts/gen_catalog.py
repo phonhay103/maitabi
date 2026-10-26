@@ -112,7 +112,9 @@ def render_catalog() -> str:
             if plan.store_true:
                 type_text = "bool flag"
             elif plan.choices is not None:
-                type_text = "int {" + ",".join(str(c) for c in plan.choices) + "}"
+                # Literal choices can be strings (kind, list_order) or enum ints.
+                kind = "int" if all(isinstance(choice, int) for choice in plan.choices) else "`str`"
+                type_text = kind + " {" + ",".join(str(choice) for choice in plan.choices) + "}"
             else:
                 # Escape the union pipe or it would split the table cell.
                 type_text = f"`{_annotation_text(info.annotation)}`".replace("|", "\\|")

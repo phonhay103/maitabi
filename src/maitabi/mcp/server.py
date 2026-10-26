@@ -13,6 +13,27 @@ from maitabi.mcp.tools import register_tools
 from maitabi.services.http import close_http_client
 from maitabi.version import get_version
 
+# Sent once on `initialize`, so it must stay short: the full procedure lives in
+# the `maitabi-mcp` skill, but a client without that skill (the hosted endpoint,
+# for one) still needs the flow, the envelope shape, and the rate limit.
+INSTRUCTIONS = """\
+Maitabi (まいたび) sells Japanese mountain bus tours (bus.maitabi.jp) and general
+trekking/travel tours (www.maitabi.jp). All tools are read-only.
+
+Flow: discover IDs with bus_list_filters or bus_list_filter_master
+(kind=style|bus_sheet|return_day|district), then search with bus_search_tours or
+general_search_tours, then open a course_no with *_get_tour_detail.
+general_get_calendar returns a monthly departure matrix.
+
+Search results are one envelope: count is the upstream total before the client-side
+price/availability filters, items is this page, query echoes the request, and every
+item carries detail_url. Prices are JPY. status is a Japanese string for bus and a
+numeric code for general (1/2 bookable, 3 closed).
+
+general_* calls are capped at 60 requests/min per IP. A payload containing "error"
+is a failure: read retry_hint and wait instead of re-running the same query.
+"""
+
 
 @asynccontextmanager
 async def app_lifespan(_server: FastMCP) -> AsyncGenerator[None]:
@@ -24,7 +45,7 @@ async def app_lifespan(_server: FastMCP) -> AsyncGenerator[None]:
 
 def create_mcp() -> FastMCP:
     """Build a fully wired FastMCP instance (fresh per call)."""
-    mcp = FastMCP("maitabi", version=get_version(), lifespan=app_lifespan)
+    mcp = FastMCP("maitabi", version=get_version(), instructions=INSTRUCTIONS, lifespan=app_lifespan)
     register_tools(mcp)
     return mcp
 

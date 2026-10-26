@@ -26,20 +26,20 @@ Endpoint: `GET /tour_course`
 
 Fetch available filter dropdown options, departure areas, tour styles, mountain lodges, and tour counts for Maitabi bus tours.
 
-> Supports cascading filtering—options and counts update dynamically based on other selected filters.
+> Supports cascading filtering—options and counts update dynamically based on other selected filters. This is the large, everything-at-once call: prefer bus_list_filter_master when you need only one group.
 
 | Field (MCP arg) | CLI flag | Type | Default | Description |
 |---|---|---|---|---|
 | `departure` | `--departure` | int {1,2,3} | 1 | Departure point: 1=Tokyo (Takebashi/Shinjuku), 2=Osaka/Kyoto, 3=Nagoya |
 | `month` | `--month` | `int \| null` | — | Departure month (1-12). Defaults to current month if omitted. |
 | `day` | `--day` | `int \| null` | — | Departure day (1-31) |
-| `area` | `--area` | `int \| null` | — | Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All) |
+| `area` | `--area` | `int \| null` | — | Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups. |
 | `style` | `--style` | int {1,2,3,4,5,6,7} | — | Tour style: 1=Round-trip bus, 2=Outbound bus, 3=Inbound bus, 4=Round-trip lodge, 5=Outbound lodge, 6=Overnight day-trip, 7=Taxi plan |
 | `return_day` | `--return-day` | int {1,2,3,4,5} | — | Return date option: 1=1 day after departure, 2=2 days after, 3=3 days after, 4=4 days after, 5=5 days after |
 | `bus_sheet` | `--bus-sheet` | int {1,2,3,4,5,6} | — | Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double seat, 6=Taxi |
-| `stay1` | `--stay1` | `int \| null` | — | Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso) |
-| `stay2` | `--stay2` | `int \| null` | — | Mountain lodge ID for night 2 |
-| `stay3` | `--stay3` | `int \| null` | — | Mountain lodge ID for night 3 |
+| `stay1` | `--stay1` | `int \| null` | — | Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso). Discover IDs with bus_list_filters (lodges). |
+| `stay2` | `--stay2` | `int \| null` | — | Mountain lodge ID for night 2 (see bus_list_filters for IDs) |
+| `stay3` | `--stay3` | `int \| null` | — | Mountain lodge ID for night 3 (see bus_list_filters for IDs) |
 | `course_cd` | `--course-cd` | `str \| null` | — | Maitabi course code (e.g., 'S104C21') |
 | `keyword` | `--keyword` | `str \| null` | — | Search keyword in Japanese (e.g., '立山', '上高地') |
 
@@ -56,13 +56,13 @@ Fetch mountain area/district groups and tour counts for Maitabi mountain bus tou
 | `departure` | `--departure` | int {1,2,3} | 1 | Departure point: 1=Tokyo (Takebashi/Shinjuku), 2=Osaka/Kyoto, 3=Nagoya |
 | `month` | `--month` | `int \| null` | — | Departure month (1-12). Defaults to current month if omitted. |
 | `day` | `--day` | `int \| null` | — | Departure day (1-31) |
-| `area` | `--area` | `int \| null` | — | Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All) |
+| `area` | `--area` | `int \| null` | — | Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups. |
 | `style` | `--style` | int {1,2,3,4,5,6,7} | — | Tour style: 1=Round-trip bus, 2=Outbound bus, 3=Inbound bus, 4=Round-trip lodge, 5=Outbound lodge, 6=Overnight day-trip, 7=Taxi plan |
 | `return_day` | `--return-day` | int {1,2,3,4,5} | — | Return date option: 1=1 day after departure, 2=2 days after, 3=3 days after, 4=4 days after, 5=5 days after |
 | `bus_sheet` | `--bus-sheet` | int {1,2,3,4,5,6} | — | Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double seat, 6=Taxi |
-| `stay1` | `--stay1` | `int \| null` | — | Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso) |
-| `stay2` | `--stay2` | `int \| null` | — | Mountain lodge ID for night 2 |
-| `stay3` | `--stay3` | `int \| null` | — | Mountain lodge ID for night 3 |
+| `stay1` | `--stay1` | `int \| null` | — | Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso). Discover IDs with bus_list_filters (lodges). |
+| `stay2` | `--stay2` | `int \| null` | — | Mountain lodge ID for night 2 (see bus_list_filters for IDs) |
+| `stay3` | `--stay3` | `int \| null` | — | Mountain lodge ID for night 3 (see bus_list_filters for IDs) |
 | `course_cd` | `--course-cd` | `str \| null` | — | Maitabi course code (e.g., 'S104C21') |
 | `keyword` | `--keyword` | `str \| null` | — | Search keyword in Japanese (e.g., '立山', '上高地') |
 
@@ -72,20 +72,20 @@ Endpoint: `GET /tour_search`
 
 Search mountain bus tours and lodge packages on Maitabi (bus.maitabi.jp) with detailed filter criteria.
 
-> Returns a JSON string containing matching bus tours, seat options, pricing, departure dates, and course numbers.
+> Returns the search envelope: count (upstream total, before the price and availability filters), page, items with course_no, title, date, price in JPY, status and detail_url, and the query actually sent. Pass course_no to bus_get_tour_detail for the itinerary.
 
 | Field (MCP arg) | CLI flag | Type | Default | Description |
 |---|---|---|---|---|
 | `departure` | `--departure` | int {1,2,3} | 1 | Departure point: 1=Tokyo (Takebashi/Shinjuku), 2=Osaka/Kyoto, 3=Nagoya |
 | `month` | `--month` | `int \| null` | — | Departure month (1-12) |
 | `day` | `--day` | `int \| list[int] \| str \| null` | — | Departure day (1-31). Can be a single int, a list of ints, or a string range (e.g., '14-16, 20'). |
-| `area` | `--area` | `int \| null` | — | Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All) |
+| `area` | `--area` | `int \| null` | — | Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups. |
 | `style` | `--style` | int {1,2,3,4,5,6,7} | — | Tour style: 1=Round-trip bus, 2=Outbound bus, 3=Inbound bus, 4=Round-trip lodge, 5=Outbound lodge, 6=Overnight day-trip, 7=Taxi plan |
 | `return_day` | `--return-day` | int {1,2,3,4,5} | — | Return date option: 1=1 day after departure, 2=2 days after, 3=3 days after, 4=4 days after, 5=5 days after |
 | `bus_sheet` | `--bus-sheet` | int {1,2,3,4,5,6} | — | Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double seat, 6=Taxi |
-| `stay1` | `--stay1` | `int \| null` | — | Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso) |
-| `stay2` | `--stay2` | `int \| null` | — | Mountain lodge ID for night 2 |
-| `stay3` | `--stay3` | `int \| null` | — | Mountain lodge ID for night 3 |
+| `stay1` | `--stay1` | `int \| null` | — | Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso). Discover IDs with bus_list_filters (lodges). |
+| `stay2` | `--stay2` | `int \| null` | — | Mountain lodge ID for night 2 (see bus_list_filters for IDs) |
+| `stay3` | `--stay3` | `int \| null` | — | Mountain lodge ID for night 3 (see bus_list_filters for IDs) |
 | `course_cd` | `--course-cd` | `str \| null` | — | Maitabi course code (e.g., 'S104C21') |
 | `keyword` | `--keyword` | `str \| null` | — | Search keyword in Japanese (e.g., '立山', '上高地') |
 | `min_price` | `--min-price` | `int \| null` | — | Minimum price in JPY (e.g., 10000). Filters the results before returning. |
@@ -99,11 +99,11 @@ Endpoint: `GET /tour_detail`
 
 Fetch detailed information, schedule, pricing, and bus stops for a specific Maitabi mountain bus tour by course_no.
 
-> Returns a JSON string containing complete tour itinerary, bus departure points, seat options, pricing, and lodging info.
+> Returns the detail object for a single course_no (itinerary, bus stops, seat options, pricing, lodging), or the batch envelope with page: null when course_no is a list; an item in that list can carry its own error.
 
 | Field (MCP arg) | CLI flag | Type | Default | Description |
 |---|---|---|---|---|
-| `course_no` | `--course-no` | `int \| list[int]` | **required** | Internal course number(s) on bus.maitabi.jp (e.g., 14241, 8518). Can be a single int or list of ints for batch fetching. |
+| `course_no` | `--course-no` | `int \| list[int]` | **required** | Internal course number(s) on bus.maitabi.jp, copied from a bus_search_tours result (e.g., 14241, 8518). Can be a single int or list of ints for batch fetching. |
 
 ### `general_search_tours` · `maitabi general search-tours`
 
@@ -111,7 +111,7 @@ Endpoint: `GET /category_search`
 
 Search general travel tours and mountain climbing packages on www.maitabi.jp.
 
-> Returns a JSON string containing matching tours, total count, pagination, sorting, and categories.
+> Returns the search envelope: count (upstream total), page, items with course_no, title, date, price in JPY, a numeric status (1/2 bookable, 3 closed) and detail_url, plus the query actually sent. Capped at 60 requests/min per IP.
 
 | Field (MCP arg) | CLI flag | Type | Default | Description |
 |---|---|---|---|---|
@@ -123,7 +123,7 @@ Search general travel tours and mountain climbing packages on www.maitabi.jp.
 | `min_price` | `--min-price` | `int \| null` | — | Minimum price in JPY (e.g., 10000). Filters the results before returning. |
 | `max_price` | `--max-price` | `int \| null` | — | Maximum price in JPY (e.g., 50000). Filters the results before returning. |
 | `require_available_seats` | `--require-available-seats` | bool flag | false | If True, filters out full/closed tours (満席, 受付終了). |
-| `list_order` | `--list-order` | `str \| null` | — | Sort order: 'startDateAsc' (departure earliest), 'saikouStatus' (departure status), 'yoyakuStatus' (availability), 'priceAsc' (price low to high), 'priceDesc' (price high to low) |
+| `list_order` | `--list-order` | `str` {startDateAsc,saikouStatus,yoyakuStatus,priceAsc,priceDesc} | — | Sort order: 'startDateAsc' (departure earliest), 'saikouStatus' (departure status), 'yoyakuStatus' (availability), 'priceAsc' (price low to high), 'priceDesc' (price high to low) |
 | `category_nos1` | `--category-nos1` | `list[int] \| null` | — | Subcategory Nos for Style/Duration (e.g. [36] for Day trip, [259] for Overnight) |
 | `category_nos2` | `--category-nos2` | `list[int] \| null` | — | Subcategory Nos for Difficulty/Shoes (e.g. [363] for Grade 1 / Introduction) |
 | `category_nos3` | `--category-nos3` | `list[int] \| null` | — | Subcategory Nos for Departure Region (e.g. [13] for Kanto, [15] for Tokai) |
@@ -136,11 +136,11 @@ Endpoint: `GET /detail.php?courseNo={course_no}`
 
 Fetch the full page for one general tour on www.maitabi.jp: day-by-day itinerary, travel conditions (minimum participants, tour conductor, meals), every departure date with price and booking status, the full description, and the booking link.
 
-> www.maitabi.jp publishes no detail API, so this reads the rendered detail page: the tour record comes from the page's embedded JSON and the three tables from its markup.
+> www.maitabi.jp publishes no detail API, so this reads the rendered detail page: the tour record comes from the page's embedded JSON and the three tables from its markup. One object per single course_no, an envelope for a list. Capped at 60 requests/min per IP.
 
 | Field (MCP arg) | CLI flag | Type | Default | Description |
 |---|---|---|---|---|
-| `course_no` | `--course-no` | `int \| list[int]` | **required** | Tour course number(s) on www.maitabi.jp (e.g., 1723, 24865). Can be a single int or list of ints for batch fetching. |
+| `course_no` | `--course-no` | `int \| list[int]` | **required** | Tour course number(s) on www.maitabi.jp, copied from a general_search_tours result (e.g., 1723, 24865). Can be a single int or list of ints for batch fetching. |
 
 ### `bus_list_filter_master` · `maitabi bus list-filter-master`
 
@@ -155,16 +155,16 @@ Fetch one cascading master list for mountain bus tours: tour styles, bus seat ty
 | `departure` | `--departure` | int {1,2,3} | 1 | Departure point: 1=Tokyo (Takebashi/Shinjuku), 2=Osaka/Kyoto, 3=Nagoya |
 | `month` | `--month` | `int \| null` | — | Departure month (1-12). Defaults to current month if omitted. |
 | `day` | `--day` | `int \| null` | — | Departure day (1-31) |
-| `area` | `--area` | `int \| null` | — | Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All) |
+| `area` | `--area` | `int \| null` | — | Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups. |
 | `style` | `--style` | int {1,2,3,4,5,6,7} | — | Tour style: 1=Round-trip bus, 2=Outbound bus, 3=Inbound bus, 4=Round-trip lodge, 5=Outbound lodge, 6=Overnight day-trip, 7=Taxi plan |
 | `return_day` | `--return-day` | int {1,2,3,4,5} | — | Return date option: 1=1 day after departure, 2=2 days after, 3=3 days after, 4=4 days after, 5=5 days after |
 | `bus_sheet` | `--bus-sheet` | int {1,2,3,4,5,6} | — | Bus seat type: 1=Standard, 2=Premium, 3=Outbound Premium / Inbound Standard, 4=Outbound Standard / Inbound Premium, 5=Double seat, 6=Taxi |
-| `stay1` | `--stay1` | `int \| null` | — | Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso) |
-| `stay2` | `--stay2` | `int \| null` | — | Mountain lodge ID for night 2 |
-| `stay3` | `--stay3` | `int \| null` | — | Mountain lodge ID for night 3 |
+| `stay1` | `--stay1` | `int \| null` | — | Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso). Discover IDs with bus_list_filters (lodges). |
+| `stay2` | `--stay2` | `int \| null` | — | Mountain lodge ID for night 2 (see bus_list_filters for IDs) |
+| `stay3` | `--stay3` | `int \| null` | — | Mountain lodge ID for night 3 (see bus_list_filters for IDs) |
 | `course_cd` | `--course-cd` | `str \| null` | — | Maitabi course code (e.g., 'S104C21') |
 | `keyword` | `--keyword` | `str \| null` | — | Search keyword in Japanese (e.g., '立山', '上高地') |
-| `kind` | `--kind` | int {style,bus_sheet,return_day,district} | **required** | Master list to fetch: 'style' (tour style), 'bus_sheet' (seat type), 'return_day' (return date), 'district' (area/district) |
+| `kind` | `--kind` | `str` {style,bus_sheet,return_day,district} | **required** | Master list to fetch: 'style' (tour style), 'bus_sheet' (seat type), 'return_day' (return date), 'district' (area/district) |
 
 ### `general_get_calendar` · `maitabi general get-calendar`
 
@@ -172,7 +172,7 @@ Endpoint: `GET /calendar/{year}/{month}`
 
 Fetch monthly departure calendar and tour schedule matrix on www.maitabi.jp for a given year and month.
 
-> Returns a JSON string with daily departure schedule matrix, tour availability, and calendar dates.
+> Returns the daily departure matrix with tour availability. Use it to see which days have departures before searching a range; narrow with travel_type because the full matrix is large. Capped at 60 requests/min per IP.
 
 | Field (MCP arg) | CLI flag | Type | Default | Description |
 |---|---|---|---|---|

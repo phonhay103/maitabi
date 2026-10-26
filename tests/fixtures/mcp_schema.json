@@ -1,6 +1,16 @@
 {
   "bus_get_tour_detail": {
-    "description": "Fetch detailed information, schedule, pricing, and bus stops for a specific Maitabi mountain bus tour by course_no.\n\nReturns a JSON string containing complete tour itinerary, bus departure points, seat options, pricing, and lodging info.",
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "Fetch detailed information, schedule, pricing, and bus stops for a specific Maitabi mountain bus tour by course_no.\n\nReturns the detail object for a single course_no (itinerary, bus stops, seat options, pricing, lodging), or the batch envelope with page: null when course_no is a list; an item in that list can carry its own error.",
+    "output_schema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -16,17 +26,28 @@
               "type": "array"
             }
           ],
-          "description": "Internal course number(s) on bus.maitabi.jp (e.g., 14241, 8518). Can be a single int or list of ints for batch fetching."
+          "description": "Internal course number(s) on bus.maitabi.jp, copied from a bus_search_tours result (e.g., 14241, 8518). Can be a single int or list of ints for batch fetching."
         }
       },
       "required": [
         "course_no"
       ],
       "type": "object"
-    }
+    },
+    "title": "Maitabi: bus tour detail"
   },
   "bus_list_district_groups": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
     "description": "Fetch mountain area/district groups and tour counts for Maitabi mountain bus tours.\n\nSupports cascading filtering—district groups and counts update dynamically based on other selected filters.",
+    "output_schema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -41,7 +62,7 @@
             }
           ],
           "default": null,
-          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All)"
+          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups."
         },
         "bus_sheet": {
           "anyOf": [
@@ -161,7 +182,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso)"
+          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso). Discover IDs with bus_list_filters (lodges)."
         },
         "stay2": {
           "anyOf": [
@@ -174,7 +195,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 2"
+          "description": "Mountain lodge ID for night 2 (see bus_list_filters for IDs)"
         },
         "stay3": {
           "anyOf": [
@@ -187,7 +208,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 3"
+          "description": "Mountain lodge ID for night 3 (see bus_list_filters for IDs)"
         },
         "style": {
           "anyOf": [
@@ -213,10 +234,21 @@
         }
       },
       "type": "object"
-    }
+    },
+    "title": "Maitabi: list bus area and district groups"
   },
   "bus_list_filter_master": {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
     "description": "Fetch one cascading master list for mountain bus tours: tour styles, bus seat types, return-day options, or area/district groups.\n\nSame data as bus_list_filters but one group at a time, with a much smaller payload. Counts stay filter-aware: they reflect the other filters passed in, so ids with tour_count 0 are unavailable for that combination.",
+    "output_schema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -231,7 +263,7 @@
             }
           ],
           "default": null,
-          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All)"
+          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups."
         },
         "bus_sheet": {
           "anyOf": [
@@ -361,7 +393,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso)"
+          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso). Discover IDs with bus_list_filters (lodges)."
         },
         "stay2": {
           "anyOf": [
@@ -374,7 +406,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 2"
+          "description": "Mountain lodge ID for night 2 (see bus_list_filters for IDs)"
         },
         "stay3": {
           "anyOf": [
@@ -387,7 +419,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 3"
+          "description": "Mountain lodge ID for night 3 (see bus_list_filters for IDs)"
         },
         "style": {
           "anyOf": [
@@ -416,10 +448,21 @@
         "kind"
       ],
       "type": "object"
-    }
+    },
+    "title": "Maitabi: list one filter master list"
   },
   "bus_list_filters": {
-    "description": "Fetch available filter dropdown options, departure areas, tour styles, mountain lodges, and tour counts for Maitabi bus tours.\n\nSupports cascading filtering—options and counts update dynamically based on other selected filters.",
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "Fetch available filter dropdown options, departure areas, tour styles, mountain lodges, and tour counts for Maitabi bus tours.\n\nSupports cascading filtering—options and counts update dynamically based on other selected filters. This is the large, everything-at-once call: prefer bus_list_filter_master when you need only one group.",
+    "output_schema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -434,7 +477,7 @@
             }
           ],
           "default": null,
-          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All)"
+          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups."
         },
         "bus_sheet": {
           "anyOf": [
@@ -554,7 +597,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso)"
+          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso). Discover IDs with bus_list_filters (lodges)."
         },
         "stay2": {
           "anyOf": [
@@ -567,7 +610,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 2"
+          "description": "Mountain lodge ID for night 2 (see bus_list_filters for IDs)"
         },
         "stay3": {
           "anyOf": [
@@ -580,7 +623,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 3"
+          "description": "Mountain lodge ID for night 3 (see bus_list_filters for IDs)"
         },
         "style": {
           "anyOf": [
@@ -606,10 +649,21 @@
         }
       },
       "type": "object"
-    }
+    },
+    "title": "Maitabi: list bus tour filter options"
   },
   "bus_search_tours": {
-    "description": "Search mountain bus tours and lodge packages on Maitabi (bus.maitabi.jp) with detailed filter criteria.\n\nReturns a JSON string containing matching bus tours, seat options, pricing, departure dates, and course numbers.",
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "Search mountain bus tours and lodge packages on Maitabi (bus.maitabi.jp) with detailed filter criteria.\n\nReturns the search envelope: count (upstream total, before the price and availability filters), page, items with course_no, title, date, price in JPY, status and detail_url, and the query actually sent. Pass course_no to bus_get_tour_detail for the itinerary.",
+    "output_schema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -624,7 +678,7 @@
             }
           ],
           "default": null,
-          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All)"
+          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups."
         },
         "bus_sheet": {
           "anyOf": [
@@ -786,7 +840,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso)"
+          "description": "Mountain lodge ID for night 1 (e.g., 5=Enzanso, 2=Nishiho Sanso). Discover IDs with bus_list_filters (lodges)."
         },
         "stay2": {
           "anyOf": [
@@ -799,7 +853,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 2"
+          "description": "Mountain lodge ID for night 2 (see bus_list_filters for IDs)"
         },
         "stay3": {
           "anyOf": [
@@ -812,7 +866,7 @@
             }
           ],
           "default": null,
-          "description": "Mountain lodge ID for night 3"
+          "description": "Mountain lodge ID for night 3 (see bus_list_filters for IDs)"
         },
         "style": {
           "anyOf": [
@@ -838,10 +892,21 @@
         }
       },
       "type": "object"
-    }
+    },
+    "title": "Maitabi: search mountain bus tours"
   },
   "general_get_calendar": {
-    "description": "Fetch monthly departure calendar and tour schedule matrix on www.maitabi.jp for a given year and month.\n\nReturns a JSON string with daily departure schedule matrix, tour availability, and calendar dates.",
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "Fetch monthly departure calendar and tour schedule matrix on www.maitabi.jp for a given year and month.\n\nReturns the daily departure matrix with tour availability. Use it to see which days have departures before searching a range; narrow with travel_type because the full matrix is large. Capped at 60 requests/min per IP.",
+    "output_schema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -883,10 +948,21 @@
         "month"
       ],
       "type": "object"
-    }
+    },
+    "title": "Maitabi: monthly departure calendar"
   },
   "general_get_tour_detail": {
-    "description": "Fetch the full page for one general tour on www.maitabi.jp: day-by-day itinerary, travel conditions (minimum participants, tour conductor, meals), every departure date with price and booking status, the full description, and the booking link.\n\nwww.maitabi.jp publishes no detail API, so this reads the rendered detail page: the tour record comes from the page's embedded JSON and the three tables from its markup.",
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "Fetch the full page for one general tour on www.maitabi.jp: day-by-day itinerary, travel conditions (minimum participants, tour conductor, meals), every departure date with price and booking status, the full description, and the booking link.\n\nwww.maitabi.jp publishes no detail API, so this reads the rendered detail page: the tour record comes from the page's embedded JSON and the three tables from its markup. One object per single course_no, an envelope for a list. Capped at 60 requests/min per IP.",
+    "output_schema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -902,17 +978,28 @@
               "type": "array"
             }
           ],
-          "description": "Tour course number(s) on www.maitabi.jp (e.g., 1723, 24865). Can be a single int or list of ints for batch fetching."
+          "description": "Tour course number(s) on www.maitabi.jp, copied from a general_search_tours result (e.g., 1723, 24865). Can be a single int or list of ints for batch fetching."
         }
       },
       "required": [
         "course_no"
       ],
       "type": "object"
-    }
+    },
+    "title": "Maitabi: general tour detail"
   },
   "general_search_tours": {
-    "description": "Search general travel tours and mountain climbing packages on www.maitabi.jp.\n\nReturns a JSON string containing matching tours, total count, pagination, sorting, and categories.",
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "Search general travel tours and mountain climbing packages on www.maitabi.jp.\n\nReturns the search envelope: count (upstream total), page, items with course_no, title, date, price in JPY, a numeric status (1/2 bookable, 3 closed) and detail_url, plus the query actually sent. Capped at 60 requests/min per IP.",
+    "output_schema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -1029,6 +1116,13 @@
         "list_order": {
           "anyOf": [
             {
+              "enum": [
+                "startDateAsc",
+                "saikouStatus",
+                "yoyakuStatus",
+                "priceAsc",
+                "priceDesc"
+              ],
               "type": "string"
             },
             {
@@ -1100,6 +1194,7 @@
         }
       },
       "type": "object"
-    }
+    },
+    "title": "Maitabi: search general tours"
   }
 }

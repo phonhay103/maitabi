@@ -35,6 +35,7 @@ Rules:
 - `__init__.py` stays empty (no heavy imports at package import time).
 - **Parameters and their descriptions live only in `core/inputs.py`.** The MCP schema and every CLI flag are derived from `model_fields`; never restate a description in an adapter.
 - **Generated files are never hand-edited**: `docs/TOOL_CATALOG.md` and the two skill `references/filter-mapping.md` copies come from `scripts/gen_catalog.py`. CI runs `--check` and fails when they are stale.
+- **MCP titles carry the service prefix**, not tool names: `Tool.title = "Maitabi: …"` while the name stays `<domain>_<command>`, so the CLI↔MCP parity invariant survives (renaming to `maitabi_*` would break it). Every tool is annotated `readOnly`/`idempotent`/`openWorld` and returns a `ToolResult`: text block = the TTY CLI bytes, `structuredContent` = the same dict already parsed, `isError` = the shared error payload. `tests/test_mcp_result.py` holds that surface.
 
 ---
 
@@ -78,6 +79,8 @@ Canonical table (MCP tool ↔ CLI subcommand ↔ Input model ↔ service ↔ end
 | Envelope / query echo | `src/maitabi/core/envelope.py` |
 | Shared MCP transport args | `src/maitabi/mcp_args.py` |
 | Catalog generator | `scripts/gen_catalog.py` → `docs/TOOL_CATALOG.md` + skill copies |
+| Evaluations | `evals/maitabi_evaluation.xml` + `evals/README.md` |
+| Release notes | `CHANGELOG.md` |
 | Extractor Skill | `skills/maitabi-bus-extractor/SKILL.md` |
 | CLI Skill | `skills/maitabi-cli/SKILL.md` |
 | MCP Skill | `skills/maitabi-mcp/SKILL.md` |
