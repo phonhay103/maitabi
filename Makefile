@@ -1,10 +1,12 @@
-.PHONY: help install dev dev-http dev-sse test smoke cli-help cli-example docker-build docker-run docker-run-http build catalog catalog-check clean
+.PHONY: help install dev dev-http dev-sse test smoke eval cli-help cli-example docker-build docker-run docker-run-http build catalog catalog-check clean
 
 DOCKER_USER ?= phonhay103
 IMAGE_NAME ?= maitabi
 TAG ?= latest
 HOST ?= 0.0.0.0
 PORT ?= 8000
+EVAL_MODEL ?= gemini-3.5-flash
+EVAL_ARGS ?=
 
 help: ## Show this help message
 	@echo "Usage: make [target]"
@@ -35,6 +37,9 @@ catalog: ## Regenerate docs/TOOL_CATALOG.md + skill filter-mapping copies
 
 catalog-check: ## Fail when generated catalog files are stale (used by CI)
 	uv run python scripts/gen_catalog.py --check
+
+eval: ## LIVE: run the evaluation suite (needs MAITABI_EVAL_API_KEY, see evals/README.md)
+	uv run python evals/run.py --model $(EVAL_MODEL) $(EVAL_ARGS)
 
 cli-help: ## Show CLI help
 	uv run maitabi --help

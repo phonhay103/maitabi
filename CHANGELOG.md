@@ -19,6 +19,9 @@ contract only grows within a major version.
   title, domain tags, and an object `outputSchema`.
 - `initialize` returns server `instructions`: the discovery → search → detail
   flow, the envelope shape, and the 60 req/min cap on `general_*`.
+- `evals/` holds a live, read-only evaluation suite for the published server,
+  plus `evals/run.py`, an OpenAI-compatible runner (the mcp-builder harness needs
+  an Anthropic key). First run: 10/10 on `deepseek/deepseek-v4.1-flash`.
 - 4xx upstream errors carry a `retry_hint` pointing at the inputs; 5xx keeps the
   existing shape. This is additive to the error contract.
 

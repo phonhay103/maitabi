@@ -9,12 +9,12 @@
 -->
 <evaluation>
   <qa_pair>
-    <question>For mountain bus tours departing in November 2026 from Tokyo, which district group has the most tours? Answer with the group name exactly as returned.</question>
+    <question>Using the district groups list for November 2026 Tokyo departures, which district group has the most tours? Answer with the group name exactly as returned.</question>
     <answer>新穂高温泉</answer>
   </qa_pair>
 
   <qa_pair>
-    <question>For mountain bus tours departing in November 2026 from Tokyo, how many tours does the district group with the most tours contain?</question>
+    <question>In the district groups list for November 2026 Tokyo departures, how many tours does the group with the most tours contain?</question>
     <answer>51</answer>
   </qa_pair>
 
@@ -39,7 +39,7 @@
   </qa_pair>
 
   <qa_pair>
-    <question>Which area does mountain bus tour 24348 belong to?</question>
+    <question>Which departure region does the tour information for mountain bus tour 24348 report?</question>
     <answer>関東</answer>
   </qa_pair>
 
@@ -54,7 +54,7 @@
   </qa_pair>
 
   <qa_pair>
-    <question>How many nights does general tour 24683 last?</question>
-    <answer>4</answer>
+    <question>How many nights does general tour 24683 last? Its duration is written in the Japanese pattern N泊M日.</question>
+    <answer>3</answer>
   </qa_pair>
 </evaluation>
