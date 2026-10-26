@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Live, read-only evaluation suite for the Maitabi MCP server.
+
+  Every question is answerable with the 8 tools alone, needs no credentials, and
+  was solved and verified by hand on 2026-10-26 against the production APIs.
+  Tour counts and prices drift with the season, so answers pinned to a month are
+  re-baselined before each release tag (see README.md).
+-->
+<evaluation>
+  <qa_pair>
+    <question>For mountain bus tours departing in November 2026 from Tokyo, which district group has the most tours? Answer with the group name exactly as returned.</question>
+    <answer>新穂高温泉</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>For mountain bus tours departing in November 2026 from Tokyo, how many tours does the district group with the most tours contain?</question>
+    <answer>51</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>In the mountain bus filter master for November 2026 from Tokyo, what is the Japanese name of tour style 7?</question>
+    <answer>タクシープラン</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>How many bus seat types does the mountain bus filter master return for November 2026 from Tokyo?</question>
+    <answer>6</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>On page 1 of the November 2026 mountain bus tours departing from Tokyo, which course_no has the lowest price?</question>
+    <answer>18775</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Take the lowest-priced tour on page 1 of the November 2026 Tokyo mountain bus departures, then open its detail. How many itinerary schedules does that detail list?</question>
+    <answer>1</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Which area does mountain bus tour 24348 belong to?</question>
+    <answer>関東</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>How many Domestic Mountain tours depart in November 2026 according to the general tour search?</question>
+    <answer>45</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>How many participants are required at minimum for general tour 24683?</question>
+    <answer>8</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>How many nights does general tour 24683 last?</question>
+    <answer>4</answer>
+  </qa_pair>
+</evaluation>
