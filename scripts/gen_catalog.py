@@ -77,7 +77,7 @@ def render_catalog() -> str:
     lines: list[str] = ["# Maitabi Tool Catalog", "", GENERATED_NOTE, ""]
 
     lines += [
-        "## Actions (7)",
+        f"## Actions ({len(ACTIONS)})",
         "",
         "| Domain | MCP Tool | CLI Command | Input Model | Service | Endpoint |",
         "|---|---|---|---|---|---|",

@@ -5,7 +5,7 @@ description: Search Maitabi mountain bus tours, trekking tours, and departure ca
 
 # Maitabi MCP Skill
 
-The 7 Maitabi tools below are already available in the MCP client. This skill tells you which tool to call, in what order, and how to read the results. Tool names are domain-prefixed: `bus_*` reads `api.bus.maitabi.jp`, `general_*` reads `www.maitabi.jp`.
+The 8 Maitabi tools below are already available in the MCP client. This skill tells you which tool to call, in what order, and how to read the results. Tool names are domain-prefixed: `bus_*` reads `api.bus.maitabi.jp`, `general_*` reads `www.maitabi.jp`.
 
 ## When to use
 

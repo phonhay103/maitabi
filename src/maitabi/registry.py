@@ -1,4 +1,4 @@
-"""Single source of truth for the seven Maitabi actions.
+"""Single source of truth for the eight Maitabi actions.
 
 One `Action` per capability: MCP tool name, CLI subcommand, Input model,
 service callable, upstream endpoint, MCP tool description, and CLI help.

@@ -73,7 +73,7 @@ Search commands return one envelope; every item carries a `detail_url`:
 
 The contract only grows: new fields appear, existing ones are never renamed or removed within a major version.
 
-## Tools (7)
+## Tools (8)
 
 Full parameter reference (MCP args, CLI flags, defaults, endpoints): **[`docs/TOOL_CATALOG.md`](docs/TOOL_CATALOG.md)** — generated from the code, so it cannot drift.
 
