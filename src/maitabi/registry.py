@@ -67,7 +67,8 @@ ACTIONS: tuple[Action, ...] = (
             "and tour counts for Maitabi bus tours.\n\n"
             "Supports cascading filtering\u2014options and counts update dynamically based on other "
             "selected filters. This is the large, everything-at-once call: prefer "
-            "bus_list_filter_master when you need only one group."
+            "bus_list_filter_master when you need only one group. The district options here carry "
+            "the IDs that the `area` search filter expects."
         ),
         help="Fetch bus tour filter options and tour counts",
     ),
@@ -80,9 +81,10 @@ ACTIONS: tuple[Action, ...] = (
         service=list_district_groups_service,
         endpoint="GET /district_group",
         doc=(
-            "Fetch mountain area/district groups and tour counts for Maitabi mountain bus tours.\n\n"
-            "Supports cascading filtering\u2014district groups and counts update dynamically based on "
-            "other selected filters."
+            "Fetch mountain district groups and their tour counts for Maitabi mountain bus tours.\n\n"
+            "These group IDs are display buckets, not the search `area` filter: discover `area` IDs "
+            "with bus_list_filter_master(kind='district'). Supports cascading filtering\u2014groups and "
+            "counts update dynamically based on other selected filters."
         ),
         help="Fetch area/district groups and tour counts",
     ),

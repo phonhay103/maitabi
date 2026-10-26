@@ -47,8 +47,8 @@ class BusFilterBase(BaseModel):
         Field(
             default=None,
             ge=0,
-            description="Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). "
-            "Discover IDs with bus_list_district_groups.",
+            description="Destination district ID (e.g., 13=Shin-Hotaka Onsen, 10=Kamikochi, "
+            "18=Tateyama Murodo, 0=All). Discover IDs with bus_list_filter_master(kind='district').",
         ),
     ] = None
     style: Annotated[
@@ -95,7 +95,8 @@ class BusFilterBase(BaseModel):
             default=None,
             min_length=1,
             max_length=50,
-            description="Maitabi course code (e.g., 'S104C21')",
+            description="Deprecated: upstream matches nothing for this filter (always 0 results). "
+            "Use keyword instead. Example code: 'S104C21'.",
         ),
     ] = None
     keyword: Annotated[

@@ -21,7 +21,6 @@ contract only grows within a major version.
   flow, the envelope shape, and the 60 req/min cap on `general_*`.
 - 4xx upstream errors carry a `retry_hint` pointing at the inputs; 5xx keeps the
   existing shape. This is additive to the error contract.
-- `evals/` holds a live, read-only evaluation suite for the published server.
 
 ### Changed
 
@@ -39,3 +38,9 @@ contract only grows within a major version.
   and the MCP skill were hardcoded to seven after the eighth action shipped.
   The generator now prints `len(ACTIONS)`.
 - Literal string choices (`kind`) rendered as `int {…}` in the catalog.
+- The `area` description pointed at `bus_list_district_groups`, whose group IDs
+  are display buckets that return zero results when used as `area`. It now names
+  `bus_list_filter_master(kind='district')`, and the district-groups tool says
+  plainly that its IDs are not the search filter.
+- The evaluation suite exposed that `course_cd` matches nothing upstream, so the
+  field is documented as deprecated in favour of `keyword`.

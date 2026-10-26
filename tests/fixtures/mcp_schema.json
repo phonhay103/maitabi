@@ -43,7 +43,7 @@
       "openWorldHint": true,
       "readOnlyHint": true
     },
-    "description": "Fetch mountain area/district groups and tour counts for Maitabi mountain bus tours.\n\nSupports cascading filtering—district groups and counts update dynamically based on other selected filters.",
+    "description": "Fetch mountain district groups and their tour counts for Maitabi mountain bus tours.\n\nThese group IDs are display buckets, not the search `area` filter: discover `area` IDs with bus_list_filter_master(kind='district'). Supports cascading filtering—groups and counts update dynamically based on other selected filters.",
     "output_schema": {
       "additionalProperties": true,
       "type": "object"
@@ -62,7 +62,7 @@
             }
           ],
           "default": null,
-          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups."
+          "description": "Destination district ID (e.g., 13=Shin-Hotaka Onsen, 10=Kamikochi, 18=Tateyama Murodo, 0=All). Discover IDs with bus_list_filter_master(kind='district')."
         },
         "bus_sheet": {
           "anyOf": [
@@ -97,7 +97,7 @@
             }
           ],
           "default": null,
-          "description": "Maitabi course code (e.g., 'S104C21')"
+          "description": "Deprecated: upstream matches nothing for this filter (always 0 results). Use keyword instead. Example code: 'S104C21'."
         },
         "day": {
           "anyOf": [
@@ -263,7 +263,7 @@
             }
           ],
           "default": null,
-          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups."
+          "description": "Destination district ID (e.g., 13=Shin-Hotaka Onsen, 10=Kamikochi, 18=Tateyama Murodo, 0=All). Discover IDs with bus_list_filter_master(kind='district')."
         },
         "bus_sheet": {
           "anyOf": [
@@ -298,7 +298,7 @@
             }
           ],
           "default": null,
-          "description": "Maitabi course code (e.g., 'S104C21')"
+          "description": "Deprecated: upstream matches nothing for this filter (always 0 results). Use keyword instead. Example code: 'S104C21'."
         },
         "day": {
           "anyOf": [
@@ -458,7 +458,7 @@
       "openWorldHint": true,
       "readOnlyHint": true
     },
-    "description": "Fetch available filter dropdown options, departure areas, tour styles, mountain lodges, and tour counts for Maitabi bus tours.\n\nSupports cascading filtering—options and counts update dynamically based on other selected filters. This is the large, everything-at-once call: prefer bus_list_filter_master when you need only one group.",
+    "description": "Fetch available filter dropdown options, departure areas, tour styles, mountain lodges, and tour counts for Maitabi bus tours.\n\nSupports cascading filtering—options and counts update dynamically based on other selected filters. This is the large, everything-at-once call: prefer bus_list_filter_master when you need only one group. The district options here carry the IDs that the `area` search filter expects.",
     "output_schema": {
       "additionalProperties": true,
       "type": "object"
@@ -477,7 +477,7 @@
             }
           ],
           "default": null,
-          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups."
+          "description": "Destination district ID (e.g., 13=Shin-Hotaka Onsen, 10=Kamikochi, 18=Tateyama Murodo, 0=All). Discover IDs with bus_list_filter_master(kind='district')."
         },
         "bus_sheet": {
           "anyOf": [
@@ -512,7 +512,7 @@
             }
           ],
           "default": null,
-          "description": "Maitabi course code (e.g., 'S104C21')"
+          "description": "Deprecated: upstream matches nothing for this filter (always 0 results). Use keyword instead. Example code: 'S104C21'."
         },
         "day": {
           "anyOf": [
@@ -678,7 +678,7 @@
             }
           ],
           "default": null,
-          "description": "Area/direction ID (e.g., 18=Tateyama Murodo, 10=Kamikochi, 0=All). Discover IDs with bus_list_district_groups."
+          "description": "Destination district ID (e.g., 13=Shin-Hotaka Onsen, 10=Kamikochi, 18=Tateyama Murodo, 0=All). Discover IDs with bus_list_filter_master(kind='district')."
         },
         "bus_sheet": {
           "anyOf": [
@@ -713,7 +713,7 @@
             }
           ],
           "default": null,
-          "description": "Maitabi course code (e.g., 'S104C21')"
+          "description": "Deprecated: upstream matches nothing for this filter (always 0 results). Use keyword instead. Example code: 'S104C21'."
         },
         "day": {
           "anyOf": [
