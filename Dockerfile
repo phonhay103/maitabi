@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --no-dev --no-editable
 
 # Stage 2: Minimal runtime image with Python 3.14
-FROM python:3.14-slim-bookworm AS runner
+FROM python:3.15-slim-bookworm AS runner
 
 WORKDIR /app
 
